@@ -4,7 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "..\..\nclgl\mesh.h"
+#include "..\nclgl\mesh.h"
 
 #define RAW_WIDTH 257
 #define RAW_HEIGHT 257
