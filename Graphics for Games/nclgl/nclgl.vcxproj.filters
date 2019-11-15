@@ -1,148 +1,142 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="Camera.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="GameTimer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Keyboard.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Matrix4.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="MD5Anim.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\MD5</Filter>
     </ClCompile>
     <ClCompile Include="MD5FileData.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\MD5</Filter>
     </ClCompile>
     <ClCompile Include="MD5Mesh.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\MD5</Filter>
     </ClCompile>
     <ClCompile Include="MD5Node.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\MD5</Filter>
+    </ClCompile>
+    <ClCompile Include="Keyboard.cpp">
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
     <ClCompile Include="Mouse.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Input</Filter>
     </ClCompile>
-    <ClCompile Include="OBJMesh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="OGLRenderer.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Matrix4.cpp">
+      <Filter>Source Files\Math</Filter>
     </ClCompile>
     <ClCompile Include="Quaternion.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Math</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="OBJMesh.cpp">
+      <Filter>Source Files\Mesh</Filter>
     </ClCompile>
     <ClCompile Include="Mesh.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Mesh</Filter>
     </ClCompile>
-    <ClCompile Include="Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="SceneNode.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Plane.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Frustum.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="CubeRobot.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="Camera.cpp">
+      <Filter>Source Files\Objects</Filter>
     </ClCompile>
     <ClCompile Include="HeightMap.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Frustum.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="GameTimer.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="OGLRenderer.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Plane.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="SceneNode.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Shader.cpp">
+      <Filter>Source Files\Other</Filter>
+    </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files\Other</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Camera.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="ChildMeshInterface.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="common.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="GameTimer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="InputDevice.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Keyboard.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Matrix4.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="MD5Anim.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\MD5</Filter>
     </ClInclude>
     <ClInclude Include="MD5FileData.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\MD5</Filter>
     </ClInclude>
     <ClInclude Include="MD5Mesh.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\MD5</Filter>
     </ClInclude>
     <ClInclude Include="MD5Node.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Mouse.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OBJMesh.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="OGLRenderer.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Quaternion.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\MD5</Filter>
     </ClInclude>
     <ClInclude Include="Vector2.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="Vector3.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Math</Filter>
     </ClInclude>
     <ClInclude Include="Vector4.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Math</Filter>
     </ClInclude>
-    <ClInclude Include="Window.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="InputDevice.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Mouse.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Keyboard.h">
+      <Filter>Header Files\Input</Filter>
+    </ClInclude>
+    <ClInclude Include="Matrix4.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Quaternion.h">
+      <Filter>Header Files\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="ChildMeshInterface.h">
+      <Filter>Header Files\Mesh</Filter>
+    </ClInclude>
+    <ClInclude Include="OBJMesh.h">
+      <Filter>Header Files\Mesh</Filter>
     </ClInclude>
     <ClInclude Include="Mesh.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Mesh</Filter>
     </ClInclude>
-    <ClInclude Include="Shader.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="SceneNode.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Plane.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Frustum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="CubeRobot.h">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="Camera.h">
+      <Filter>Header Files\Objects</Filter>
     </ClInclude>
     <ClInclude Include="HeightMap.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Objects</Filter>
     </ClInclude>
     <ClInclude Include="Light.h">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="common.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Frustum.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="GameTimer.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="OGLRenderer.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Plane.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="SceneNode.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Shader.h">
+      <Filter>Header Files\Other</Filter>
+    </ClInclude>
+    <ClInclude Include="Window.h">
+      <Filter>Header Files\Other</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -151,6 +145,42 @@
     </Filter>
     <Filter Include="Source Files">
       <UniqueIdentifier>{e2f79bc2-99b4-44fb-980f-df710173ac34}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\MD5">
+      <UniqueIdentifier>{e1ef937c-e356-4bb3-864a-89b8ac16b8d9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Input">
+      <UniqueIdentifier>{c374fd74-baf1-4a64-a0d3-c4cf2bc0072a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Math">
+      <UniqueIdentifier>{27e1c60e-ca37-41f3-951c-8bb5430e1ffe}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Mesh">
+      <UniqueIdentifier>{696be577-acfa-41e9-97fe-7d9c0db38107}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Objects">
+      <UniqueIdentifier>{b9524294-0a60-4d40-8ded-d42d40bf2308}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Other">
+      <UniqueIdentifier>{35e495e8-6f50-4a2b-82b9-028eff6d9bf1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\MD5">
+      <UniqueIdentifier>{b192f9a1-290d-4527-9d7d-9bc498779c0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Input">
+      <UniqueIdentifier>{6fe0e1ed-59f3-4c73-9222-bfe50e5164c6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Math">
+      <UniqueIdentifier>{511f8319-209d-44fa-b75d-18bc7e8126b2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Mesh">
+      <UniqueIdentifier>{62ea2090-bf37-4704-9a4b-4dda1d542446}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Objects">
+      <UniqueIdentifier>{fc02354f-6481-455c-86d9-30157cf19a79}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Other">
+      <UniqueIdentifier>{c6634acb-f9b5-4336-b158-a0cbbf11f83a}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>

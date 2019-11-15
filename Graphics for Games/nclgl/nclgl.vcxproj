@@ -12,7 +12,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Camera.cpp" />
-    <ClCompile Include="CubeRobot.cpp" />
     <ClCompile Include="Frustum.cpp" />
     <ClCompile Include="GameTimer.cpp" />
     <ClCompile Include="HeightMap.cpp" />
@@ -36,7 +35,6 @@
     <ClInclude Include="Camera.h" />
     <ClInclude Include="ChildMeshInterface.h" />
     <ClInclude Include="common.h" />
-    <ClInclude Include="CubeRobot.h" />
     <ClInclude Include="Frustum.h" />
     <ClInclude Include="GameTimer.h" />
     <ClInclude Include="HeightMap.h" />
