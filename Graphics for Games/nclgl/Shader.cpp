@@ -94,6 +94,7 @@ void Shader::SetDefaultAttributes()
 	glBindAttribLocation(program, NORMAL_BUFFER, "normal");
 	glBindAttribLocation(program, TEXTURE_BUFFER, "texCoord");
 	glBindAttribLocation(program, TANGENT_BUFFER, "tangent");
+	glBindAttribLocation(program, HEIGHT_BUFFER, "heightCoord");
 }
 
 bool Shader::LinkProgram() 

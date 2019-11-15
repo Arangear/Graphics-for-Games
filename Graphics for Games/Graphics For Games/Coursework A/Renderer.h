@@ -2,7 +2,7 @@
 
 #include "../../nclgl/OGLRenderer.h"
 #include "../../nclgl/Camera.h"
-#include "../../nclgl/HeightMap.h"
+#include "../../nclgl/Island.h"
 
 class Renderer : public OGLRenderer
 {
@@ -14,6 +14,6 @@ public:
 	virtual void UpdateScene(float msec);
 
 protected:
-	HeightMap* heightMap;
+	Island* island;
 	Camera* camera;
 };
