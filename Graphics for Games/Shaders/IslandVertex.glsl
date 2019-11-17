@@ -94,6 +94,7 @@ vec3 calculateNormal(mat3 normalMatrix)
 	return normalize(normalMatrix * result);
 }
 
+//TODO: Consult and improve
 vec3 calculateTangent(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 1024.0f;

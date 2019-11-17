@@ -14,6 +14,7 @@ int main()
 	Renderer renderer(window);
 	if(!renderer.HasInitialised())
 	{
+		system("PAUSE");
 		return -1;
 	}
 

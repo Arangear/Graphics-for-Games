@@ -37,10 +37,10 @@ void main(void)
 	vec3 halfDir = normalize(incident + viewDir);
 
 	float rFactor = max(0.0, dot(halfDir, IN.normal));
-	float sFactor = pow(rFactor, 50.0);
+	float sFactor = pow(rFactor, 10.0);
 
 	vec3 colour = diffuse.rgb * lightColour.rgb;
-	colour += lightColour.rgb * sFactor * 0.33;
+	colour += lightColour.rgb * sFactor * 0.1;
 	fragColour = vec4(colour * atten * lambert, diffuse.a);
 	fragColour.rgb += diffuse.rgb * lightColour.rgb * 0.1;
 }

@@ -17,4 +17,15 @@ protected:
 	Island* island;
 	Camera* camera;
 	Light* sun;
+	Mesh* quad;
+	GLuint cubeMap;
+	float waterRotate;
+
+	Shader* skyboxShader;
+	Shader* reflectShader;
+	Shader* lightShader;
+
+	void DrawSkybox();
+	void DrawIsland();
+	void DrawWater();
 };
