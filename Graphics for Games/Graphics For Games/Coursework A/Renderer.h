@@ -16,4 +16,5 @@ public:
 protected:
 	Island* island;
 	Camera* camera;
+	Light* sun;
 };
