@@ -5,6 +5,38 @@
 #include "Mesh.h"
 #include <vector>
 
+enum uniformType { uniform1i, uniform3fv };
+
+class Texture
+{
+public:
+	Texture(GLenum location, GLenum type, GLuint texture) : location(location), type(type), texture(texture) {};
+
+	GLuint GetTexture() { return texture; }
+	GLenum GetLocation() { return location; }
+	GLenum GetType() { return type; }
+
+private:
+	GLenum type;
+	GLenum location;
+	GLuint texture;
+};
+
+class Uniform
+{
+public:
+	Uniform(uniformType type, GLchar* name, void* value) : type(type), name(name), value(value) {};
+
+	uniformType GetType() { return type; }
+	GLchar* GetName() { return name; }
+	void* GetValue() { return value; }
+
+private:
+	uniformType type;
+	GLchar* name;
+	void* value;
+};
+
 class SceneNode 
 {
 public:
@@ -50,6 +82,21 @@ public:
 		return children.end();
 	}
 
+	void SetShader(Shader* s) { shader = s; }
+	Shader* GetShader() { return shader; }
+
+	void SetModelMatrix(Matrix4 matrix) { modelMatrix = matrix; }
+	Matrix4 GetModelMatrix() { return modelMatrix; }
+
+	void SetTextureMatrix(Matrix4 matrix) { textureMatrix = matrix; }
+	Matrix4 GetTextureMatrix() { return textureMatrix; }
+
+	void AddUniform(Uniform* uniform) { uniforms.push_back(uniform); }
+	void AddTexture(Texture tex) { textures.push_back(tex); }
+
+	void BuildUniforms();
+	void BindTextures();
+
 protected:
 	SceneNode* parent;
 	Mesh* mesh;
@@ -57,6 +104,13 @@ protected:
 	Matrix4 transform;
 	Vector3 modelScale;
 	Vector4 colour;
+
+	Shader* shader;
+	Matrix4 modelMatrix;
+	Matrix4 textureMatrix;
+	std::vector<Uniform*> uniforms;
+	std::vector<Texture> textures;
+
 	std::vector<SceneNode*> children;
 	float distanceFromCamera;
 	float boundingRadius;
