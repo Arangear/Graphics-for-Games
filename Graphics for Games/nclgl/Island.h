@@ -33,16 +33,12 @@ public:
 	void SetDirtTexture(GLuint tex) { dirtTexture = tex; }
 	GLuint GetDirtTexture() { return dirtTexture; }
 
-	void SetGrassTexture(GLuint tex) { grassTexture = tex; }
-	GLuint GetGrassTexture() { return grassTexture; }
-
 private:
 	GLuint heightTexture;
 	Vector2* heightCoords;
 
 	GLuint sandTexture;
 	GLuint dirtTexture;
-	GLuint grassTexture;
 	GLuint rockTexture;
 
 	void BufferAllData();

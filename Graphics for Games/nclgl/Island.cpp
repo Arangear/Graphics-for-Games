@@ -72,9 +72,6 @@ void Island::Draw()
 	glActiveTexture(GL_TEXTURE5);
 	glBindTexture(GL_TEXTURE_2D, dirtTexture);
 
-	glActiveTexture(GL_TEXTURE6);
-	glBindTexture(GL_TEXTURE_2D, grassTexture);
-
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER])
 	{

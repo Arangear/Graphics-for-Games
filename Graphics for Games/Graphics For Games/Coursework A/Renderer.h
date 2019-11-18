@@ -37,7 +37,8 @@ protected:
 
 	Font* font;
 	TextMesh* text;
-	std::string fps = "";
+	std::string fps = "60";
+	int msCount = 0;
 
 	void DrawSkybox();
 	void DrawFPS();

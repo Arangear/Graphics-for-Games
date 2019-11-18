@@ -3,7 +3,6 @@
 uniform sampler2D sandTex;
 uniform sampler2D rockTex;
 uniform sampler2D dirtTex;
-uniform sampler2D grassTex;
 uniform sampler2D bumpTex;
 
 uniform vec3 cameraPos;
@@ -57,17 +56,17 @@ vec4 getDiffuse()
 	{
 		result = texture(sandTex, IN.texCoord);
 	}
-	else if (IN.height < 1500)
+	else if (IN.height < 800)
+	{
+		result = mix(texture(sandTex, IN.texCoord), texture(rockTex, IN.texCoord), (900.0f - IN.height) / 100.0f);
+	}
+	else if (IN.height < 900)
+	{
+		result = mix(texture(rockTex, IN.texCoord), texture(dirtTex, IN.texCoord), (1100.0f - IN.height) / 200.0f);
+	}
+	else
 	{
 		result = texture(rockTex, IN.texCoord);
-	}
-	else if (IN.height < 2200)
-	{
-		result = texture(dirtTex, IN.texCoord);
-	}
-	else 
-	{
-		result = texture(grassTex, IN.texCoord);
 	}
 	return result;
 }

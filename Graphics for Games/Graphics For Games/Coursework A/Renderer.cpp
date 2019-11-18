@@ -38,12 +38,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 
-	island->SetGrassTexture(SOIL_load_OGL_texture(TEXTUREDIR"grass.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetGrassTexture())
-	{
-		return;
-	}
-
 	island->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	if (!island->GetBumpMap())
 	{
@@ -168,7 +162,15 @@ void Renderer::UpdateScene(float msec)
 	*waterRotate += msec / 1000.0f;
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
-	fps = std::to_string((int)1 / msec);
+	if (msCount >= 1000)
+	{
+		msCount = 0;
+		fps = std::to_string((int)(1000.0f / msec));
+	}
+	else
+	{
+		msCount += msec;
+	}
 	root->Update(msec);
 }
 
@@ -182,7 +184,9 @@ void Renderer::RenderScene()
 
 	DrawSkybox();
 	DrawNodes();
-	//DrawFPS();
+	DrawFPS();
+
+	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 	SwapBuffers();
 }
@@ -192,7 +196,11 @@ void Renderer::DrawSkybox()
 	glDepthMask(GL_FALSE);
 	glDisable(GL_CULL_FACE);
 	SetCurrentShader(skyboxShader);
+	float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
+	float heightY = 500.0f;
+	float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
 
+	projMatrix = Matrix4::Perspective(1.0f, 30000.0f, (float)width / (float)height, 45.0f);
 	UpdateShaderMatrices();
 	quad->Draw();
 
@@ -269,6 +277,8 @@ void Renderer::ClearNodeLists()
 	opaqueNodes.clear();
 }
 
+
+
 void Renderer::DrawFPS()
 {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
@@ -279,11 +289,12 @@ void Renderer::DrawFPS()
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 
 	float size = 16.0f;
-	TextMesh* mesh = new TextMesh(fps+" fps", *font);
+	TextMesh* mesh = new TextMesh(fps + "fps", *font);
 
-	modelMatrix = Matrix4::Translation(Vector3(0, height, 0)) * Matrix4::Scale(Vector3(size, size, 1));
+	modelMatrix = Matrix4::Translation(Vector3(0, height , 0)) * Matrix4::Scale(Vector3(size, size, 1));
 	viewMatrix.ToIdentity();
 	projMatrix = Matrix4::Orthographic(-1.0f, 1.0f, (float)width, 0.0f, (float)height, 0.0f);
+	textureMatrix.ToIdentity();
 
 	UpdateShaderMatrices();
 	mesh->Draw();
