@@ -89,10 +89,14 @@ public:
 	Matrix4 GetModelMatrix() { return modelMatrix; }
 
 	void SetTextureMatrix(Matrix4 matrix) { textureMatrix = matrix; }
-	Matrix4 GetTextureMatrix() { return textureMatrix; }
+	Matrix4 GetTextureMatrix();
 
 	void AddUniform(Uniform* uniform) { uniforms.push_back(uniform); }
 	void AddTexture(Texture tex) { textures.push_back(tex); }
+
+	void SetRotation(bool value) { rotate = value; }
+
+	void SetRotationPointer(float* rotation) { texRotate = rotation; }
 
 	void BuildUniforms();
 	void BindTextures();
@@ -110,6 +114,9 @@ protected:
 	Matrix4 textureMatrix;
 	std::vector<Uniform*> uniforms;
 	std::vector<Texture> textures;
+
+	bool rotate = false;
+	float* texRotate;
 
 	std::vector<SceneNode*> children;
 	float distanceFromCamera;

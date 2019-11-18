@@ -14,7 +14,7 @@ Island::Island()
 		for (int z = 0; z < HEIGHT; ++z)
 		{
 			int offset = (x * WIDTH) + z;
-			vertices[offset] = Vector3(x * HEIGHTMAP_X, 0, z * HEIGHTMAP_Z);
+			vertices[offset] = Vector3((x - WIDTH / 2) * HEIGHTMAP_X, 0, (z - HEIGHT / 2) * HEIGHTMAP_Z);
 			textureCoords[offset] = Vector2(x * HEIGHTMAP_TEX_X, z * HEIGHTMAP_TEX_Z);
 			heightCoords[offset] = Vector2(x * HEIGHT_TEX_X, z * HEIGHT_TEX_Z);
 		}
@@ -62,6 +62,18 @@ void Island::Draw()
 
 	glActiveTexture(GL_TEXTURE2);
 	glBindTexture(GL_TEXTURE_2D, heightTexture);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, sandTexture);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, rockTexture);
+
+	glActiveTexture(GL_TEXTURE5);
+	glBindTexture(GL_TEXTURE_2D, dirtTexture);
+
+	glActiveTexture(GL_TEXTURE6);
+	glBindTexture(GL_TEXTURE_2D, grassTexture);
 
 	glBindVertexArray(arrayObject);
 	if (bufferObject[INDEX_BUFFER])

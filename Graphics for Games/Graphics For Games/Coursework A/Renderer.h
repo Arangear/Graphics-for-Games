@@ -5,6 +5,7 @@
 #include "../../nclgl/Island.h"
 #include "../../nclgl/SceneNode.h"
 #include "../../nclgl/Frustum.h"
+#include "TextMesh.h"
 #include <algorithm>
 
 class Renderer : public OGLRenderer
@@ -27,15 +28,19 @@ protected:
 	Light* sun;
 	Mesh* quad;
 	GLuint cubeMap;
-	float waterRotate;
+	float* waterRotate;
 
 	Shader* skyboxShader;
 	Shader* reflectShader;
 	Shader* lightShader;
+	Shader* textShader;
+
+	Font* font;
+	TextMesh* text;
+	std::string fps = "";
 
 	void DrawSkybox();
-	void DrawIsland();
-	void DrawWater();
+	void DrawFPS();
 
 	void BuildNodeLists(SceneNode* from);
 	void SortNodeLists();

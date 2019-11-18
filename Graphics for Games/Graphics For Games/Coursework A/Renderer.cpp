@@ -1,23 +1,45 @@
 #include "Renderer.h"
+#include <string>
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(HEIGHT * HEIGHTMAP_X / 2.0f, 2000.0f, WIDTH * HEIGHTMAP_Z / 2.0f), Vector4(1, 1, 1, 1), 10000.0f);
+	sun = new Light(Vector3(0, 2000.0f, 0), Vector4(1, 1, 1, 1), 10000.0f);
 	quad = Mesh::GenerateQuad();
 
 	lightShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
+	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
 
-	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram())
+	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
+
+	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram())
 	{
 		return;
 	}
 
-	island->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"Barren Reds.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetTexture())
+	island->SetSandTexture(SOIL_load_OGL_texture(TEXTUREDIR"sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!island->GetSandTexture())
+	{
+		return;
+	}
+
+	island->SetRockTexture(SOIL_load_OGL_texture(TEXTUREDIR"rock.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!island->GetRockTexture())
+	{
+		return;
+	}
+
+	island->SetDirtTexture(SOIL_load_OGL_texture(TEXTUREDIR"dirt.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!island->GetDirtTexture())
+	{
+		return;
+	}
+
+	island->SetGrassTexture(SOIL_load_OGL_texture(TEXTUREDIR"grass.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!island->GetGrassTexture())
 	{
 		return;
 	}
@@ -64,26 +86,30 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	s->SetTextureMatrix(textureMatrix);
 	s->SetShader(lightShader);
 	
-	s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
+	s->AddUniform(new Uniform(uniform1i, "sandTex", new int(3)));
+	s->AddUniform(new Uniform(uniform1i, "rockTex", new int(4)));
+	s->AddUniform(new Uniform(uniform1i, "dirtTex", new int(5)));
+	s->AddUniform(new Uniform(uniform1i, "grassTex", new int(6)));
 	s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
 	s->AddUniform(new Uniform(uniform1i, "heightTex", new int(2)));
 	s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
 	root->AddChild(s);
 
-	float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
+	float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
 	float heightY = 500.0f;
-	float heightZ = HEIGHT * HEIGHTMAP_Z / 2.0f;
+	float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
+	waterRotate = new float(0.0f);
 
 	modelMatrix =
-		Matrix4::Translation(Vector3(heightX, heightY, heightZ)) *
+		Matrix4::Translation(Vector3(0, heightY, 0)) *
 		Matrix4::Scale(Vector3(heightX, 1, heightZ)) *
 		Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
-	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(waterRotate, Vector3(0.0f, 0.0f, 1.0f));
+	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 	s = new SceneNode();
-	s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-	s->SetTransform(Matrix4::Translation(Vector3(-WIDTH * HEIGHTMAP_X / 2, 0, -HEIGHT * HEIGHTMAP_Z / 2)));
+	s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.9f));
+	s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
 	s->SetModelScale(Vector3(1, 1, 1));
 	s->SetBoundingRadius(3.0f * WIDTH * HEIGHTMAP_X / 4.0f);
 	s->SetMesh(quad);
@@ -96,6 +122,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
 	s->AddTexture(Texture(GL_TEXTURE2, GL_TEXTURE_CUBE_MAP, cubeMap));
+
+	s->SetRotation(true);
+	s->SetRotationPointer(waterRotate);
 
 	root->AddChild(s);
 
@@ -114,7 +143,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	init = true;
-	waterRotate = 0.0f;
 }
 
 Renderer::~Renderer(void)
@@ -127,6 +155,9 @@ Renderer::~Renderer(void)
 	delete reflectShader;
 	delete lightShader;
 	delete skyboxShader;
+	delete textShader;
+	delete font;
+	delete waterRotate;
 	currentShader = 0;
 }
 
@@ -134,14 +165,16 @@ void Renderer::UpdateScene(float msec)
 {
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
-	waterRotate += msec / 1000.0f;
+	*waterRotate += msec / 1000.0f;
 
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+	fps = std::to_string((int)1 / msec);
 	root->Update(msec);
 }
 
 void Renderer::RenderScene()
 {
+	ClearNodeLists();
 	BuildNodeLists(root);
 	SortNodeLists();
 
@@ -149,6 +182,7 @@ void Renderer::RenderScene()
 
 	DrawSkybox();
 	DrawNodes();
+	//DrawFPS();
 
 	SwapBuffers();
 }
@@ -165,55 +199,6 @@ void Renderer::DrawSkybox()
 	glUseProgram(0);
 	glEnable(GL_CULL_FACE);
 	glDepthMask(GL_TRUE);
-}
-
-void Renderer::DrawIsland()
-{
-	SetCurrentShader(lightShader);
-	SetShaderLight(*sun);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "bumpTex"), 1);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "heightTex"), 2);
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
-
-	modelMatrix.ToIdentity();
-	textureMatrix.ToIdentity();
-
-	UpdateShaderMatrices();
-
-	island->Draw();
-
-	glUseProgram(0);
-}
-
-void Renderer::DrawWater()
-{
-	SetCurrentShader(reflectShader);
-	SetShaderLight(*sun);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "cubeTex"), 3);
-	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "cameraPos"), 1, (float*)&camera->GetPosition());
-
-	glActiveTexture(GL_TEXTURE2);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, cubeMap);
-
-	float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
-	float heightY = 500.0f;
-	float heightZ = HEIGHT * HEIGHTMAP_Z / 2.0f;
-
-	modelMatrix = 
-		Matrix4::Translation(Vector3(heightX, heightY, heightZ)) *
-		Matrix4::Scale(Vector3(heightX, 1, heightZ)) *
-		Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
-	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(waterRotate, Vector3(0.0f, 0.0f, 1.0f));
-
-	UpdateShaderMatrices();
-
-	quad->Draw();
-
-	glUseProgram(0);
 }
 
 void Renderer::BuildNodeLists(SceneNode* from)
@@ -282,4 +267,31 @@ void Renderer::ClearNodeLists()
 {
 	transparentNodes.clear();
 	opaqueNodes.clear();
+}
+
+void Renderer::DrawFPS()
+{
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDisable(GL_DEPTH_TEST);
+
+	SetCurrentShader(textShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
+
+	float size = 16.0f;
+	TextMesh* mesh = new TextMesh(fps+" fps", *font);
+
+	modelMatrix = Matrix4::Translation(Vector3(0, height, 0)) * Matrix4::Scale(Vector3(size, size, 1));
+	viewMatrix.ToIdentity();
+	projMatrix = Matrix4::Orthographic(-1.0f, 1.0f, (float)width, 0.0f, (float)height, 0.0f);
+
+	UpdateShaderMatrices();
+	mesh->Draw();
+
+	delete mesh;
+
+	glEnable(GL_DEPTH_TEST);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	glUseProgram(0);
 }

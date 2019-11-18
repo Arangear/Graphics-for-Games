@@ -5,9 +5,7 @@ VisualStudioVersion = 16.0.29418.71
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "nclgl", "..\nclgl\nclgl.vcxproj", "{98D6B51B-CB0A-4389-ADC6-24082B967C3F}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Extra - Drawing Text", "Extra - Drawing Text\Drawing Text.vcxproj", "{D0AFE823-365D-49D6-B9AD-B417C23A4D1A}"
-EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Coursework A", "Coursework A\Coursework A.vcxproj", "{55C75BC7-89C2-4B38-8118-CF8C26426E7A}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Coursework", "Coursework A\Coursework A.vcxproj", "{55C75BC7-89C2-4B38-8118-CF8C26426E7A}"
 	ProjectSection(ProjectDependencies) = postProject
 		{98D6B51B-CB0A-4389-ADC6-24082B967C3F} = {98D6B51B-CB0A-4389-ADC6-24082B967C3F}
 	EndProjectSection
@@ -22,10 +20,6 @@ Global
 		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Debug|Win32.Build.0 = Debug|Win32
 		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|Win32.ActiveCfg = Release|Win32
 		{98D6B51B-CB0A-4389-ADC6-24082B967C3F}.Release|Win32.Build.0 = Release|Win32
-		{D0AFE823-365D-49D6-B9AD-B417C23A4D1A}.Debug|Win32.ActiveCfg = Debug|Win32
-		{D0AFE823-365D-49D6-B9AD-B417C23A4D1A}.Debug|Win32.Build.0 = Debug|Win32
-		{D0AFE823-365D-49D6-B9AD-B417C23A4D1A}.Release|Win32.ActiveCfg = Release|Win32
-		{D0AFE823-365D-49D6-B9AD-B417C23A4D1A}.Release|Win32.Build.0 = Release|Win32
 		{55C75BC7-89C2-4B38-8118-CF8C26426E7A}.Debug|Win32.ActiveCfg = Debug|Win32
 		{55C75BC7-89C2-4B38-8118-CF8C26426E7A}.Debug|Win32.Build.0 = Debug|Win32
 		{55C75BC7-89C2-4B38-8118-CF8C26426E7A}.Release|Win32.ActiveCfg = Release|Win32

@@ -1,6 +1,9 @@
 #version 150 core
 
-uniform sampler2D diffuseTex;
+uniform sampler2D sandTex;
+uniform sampler2D rockTex;
+uniform sampler2D dirtTex;
+uniform sampler2D grassTex;
 uniform sampler2D bumpTex;
 
 uniform vec3 cameraPos;
@@ -20,9 +23,11 @@ in Vertex
 
 out vec4 fragColour;
 
+vec4 getDiffuse();
+
 void main(void)
 {
-	vec4 diffuse = texture(diffuseTex, IN.texCoord);
+	vec4 diffuse = getDiffuse();
 
 	mat3 TBN = mat3(IN.tangent, IN.binormal, IN.normal);
 	vec3 normal = normalize(TBN * (texture(bumpTex, IN.texCoord).rgb * 2.0f - 1.0f));
@@ -43,4 +48,26 @@ void main(void)
 	colour += lightColour.rgb * sFactor * 0.1;
 	fragColour = vec4(colour * atten * lambert, diffuse.a);
 	fragColour.rgb += diffuse.rgb * lightColour.rgb * 0.1;
+}
+
+vec4 getDiffuse()
+{
+	vec4 result;
+	if (IN.height < 700)
+	{
+		result = texture(sandTex, IN.texCoord);
+	}
+	else if (IN.height < 1500)
+	{
+		result = texture(rockTex, IN.texCoord);
+	}
+	else if (IN.height < 2200)
+	{
+		result = texture(dirtTex, IN.texCoord);
+	}
+	else 
+	{
+		result = texture(grassTex, IN.texCoord);
+	}
+	return result;
 }

@@ -8,6 +8,7 @@ SceneNode::SceneNode(Mesh * mesh, Vector4 colour)
 	modelScale = Vector3(1, 1, 1);
 	boundingRadius = 1.0f;
 	distanceFromCamera = 0.0f;
+	texRotate = NULL;
 	shader = NULL;
 }
 
@@ -35,6 +36,15 @@ void SceneNode::Draw(const OGLRenderer& r)
 	{
 		mesh->Draw();
 	}
+}
+
+Matrix4 SceneNode::GetTextureMatrix()
+{
+	if (rotate)
+	{
+		textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*texRotate, Vector3(0.0f, 0.0f, 1.0f));
+	}
+	return textureMatrix;
 }
 
 void SceneNode::BuildUniforms()
@@ -72,7 +82,7 @@ void SceneNode::Update(float msec)
 	{
 		worldTransform = transform;
 	}
-	for (vector < SceneNode* >::iterator i = children.begin(); i != children.end(); ++i) 
+	for (vector<SceneNode*>::iterator i = children.begin(); i != children.end(); ++i) 
 	{
 		(*i)->Update(msec);
 	}
