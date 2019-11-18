@@ -202,9 +202,6 @@ void Renderer::DrawSkybox()
 	glDepthMask(GL_FALSE);
 	glDisable(GL_CULL_FACE);
 	SetCurrentShader(skyboxShader);
-	float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
-	float heightY = 500.0f;
-	float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
 
 	projMatrix = Matrix4::Perspective(1.0f, 30000.0f, (float)width / (float)height, 45.0f);
 	UpdateShaderMatrices();

@@ -5,7 +5,7 @@
 
 int main()
 {
-	Window window("Coursework", 800, 600, false);
+	Window window("Coursework", 1920, 1080, true);
 	if(!window.HasInitialised())
 	{
 		return -1;
