@@ -5,6 +5,7 @@ uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 textureMatrix;
 
+uniform float heightMod;
 uniform sampler2D heightTex;
 
 in vec3 position;
@@ -26,7 +27,7 @@ vec3 calculateTangent(mat3 normalMatrix);
 
 void main(void) 
 {
-	float h = texture(heightTex, heightCoord).r * 5000.f;
+	float h = texture(heightTex, heightCoord).r * heightMod;
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
 
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
@@ -45,7 +46,7 @@ vec3 calculateNormal(mat3 normalMatrix)
 	float texMod = 1.0f / 1024.0f;
 	float xSpacing = 16.0f;
 	float zSpacing = 16.0f;
-	float heightMultiplier = 5000.0f;
+	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
 	//First triangle
@@ -100,7 +101,7 @@ vec3 calculateTangent(mat3 normalMatrix)
 	float texMod = 1.0f / 1024.0f;
 	float xSpacing = 16.0f;
 	float zSpacing = 16.0f;
-	float heightMultiplier = 5000.0f;
+	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
 	//First triangle

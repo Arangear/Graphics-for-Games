@@ -52,15 +52,19 @@ void main(void)
 vec4 getDiffuse()
 {
 	vec4 result;
-	if (IN.height < 700)
+	if (IN.height < 500)
 	{
 		result = texture(sandTex, IN.texCoord);
 	}
 	else if (IN.height < 800)
 	{
-		result = mix(texture(sandTex, IN.texCoord), texture(rockTex, IN.texCoord), (900.0f - IN.height) / 100.0f);
+		result = mix(texture(dirtTex, IN.texCoord), texture(sandTex, IN.texCoord), (800.0f - IN.height) / 300.0f);
 	}
 	else if (IN.height < 900)
+	{
+		result = texture(dirtTex, IN.texCoord);
+	}
+	else if (IN.height < 1100)
 	{
 		result = mix(texture(rockTex, IN.texCoord), texture(dirtTex, IN.texCoord), (1100.0f - IN.height) / 200.0f);
 	}

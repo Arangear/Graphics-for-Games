@@ -40,6 +40,9 @@ protected:
 	std::string fps = "60";
 	int msCount = 0;
 
+	float growthSpeed = 150.0f;
+	float currentHeightMod = 0.0f;
+
 	void DrawSkybox();
 	void DrawFPS();
 

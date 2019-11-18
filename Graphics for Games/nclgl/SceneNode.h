@@ -5,7 +5,7 @@
 #include "Mesh.h"
 #include <vector>
 
-enum uniformType { uniform1i, uniform3fv };
+enum uniformType { uniform1i, uniform3fv, uniform1fv };
 
 class Texture
 {

@@ -80,6 +80,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	s->SetTextureMatrix(textureMatrix);
 	s->SetShader(lightShader);
 	
+	s->AddUniform(new Uniform(uniform1fv, "heightMod", (void*)&currentHeightMod));
 	s->AddUniform(new Uniform(uniform1i, "sandTex", new int(3)));
 	s->AddUniform(new Uniform(uniform1i, "rockTex", new int(4)));
 	s->AddUniform(new Uniform(uniform1i, "dirtTex", new int(5)));
@@ -171,6 +172,11 @@ void Renderer::UpdateScene(float msec)
 	{
 		msCount += msec;
 	}
+	if (currentHeightMod < 5000.0f)
+	{
+		currentHeightMod += growthSpeed * msec / 1000.0f;
+	}
+
 	root->Update(msec);
 }
 

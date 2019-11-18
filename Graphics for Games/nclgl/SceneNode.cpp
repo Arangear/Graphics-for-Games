@@ -59,6 +59,9 @@ void SceneNode::BuildUniforms()
 		case uniform3fv:
 			glUniform3fv(glGetUniformLocation(shader->GetProgram(), uniforms[i]->GetName()), 1, (float*)uniforms[i]->GetValue());
 			break;
+		case uniform1fv:
+			glUniform1fv(glGetUniformLocation(shader->GetProgram(), uniforms[i]->GetName()), 1, (float*)uniforms[i]->GetValue());
+			break;
 		}
 	}
 }
