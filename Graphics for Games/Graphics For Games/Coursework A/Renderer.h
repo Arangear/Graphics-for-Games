@@ -19,6 +19,7 @@ public:
 	virtual void UpdateScene(float msec);
 
 	void ToggleCamera() { camera->ToggleAutomated(); }
+	void ToggleSunRotation() { sunRotation = !sunRotation; }
 
 protected:
 	Frustum frameFrustum;
@@ -49,6 +50,10 @@ protected:
 	float currentHeightMod = 0.0f;
 	float cameraFar = 30000.0f;
 	float cameraNear = 50.0f;
+	float cameraSpeed = 100.0f;
+
+	float sunSpeed = 30.0f;
+	bool sunRotation = false;
 
 	void DrawSkybox();
 	void DrawFPS();

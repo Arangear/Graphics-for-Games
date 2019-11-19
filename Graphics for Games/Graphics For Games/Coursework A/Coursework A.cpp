@@ -30,6 +30,10 @@ int main()
 		{
 			renderer.ToggleCamera();
 		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_R))
+		{
+			renderer.ToggleSunRotation();
+		}
 	}
 
 	return 0;

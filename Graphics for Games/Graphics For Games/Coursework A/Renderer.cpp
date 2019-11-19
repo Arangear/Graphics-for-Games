@@ -5,7 +5,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(0, 2000.0f, 0), Vector4(1, 1, 1, 1), 10000.0f);
+	sun = new Light(Vector3(100.0f, 35000.0f, 0), Vector4(1, 1, 1, 1), 55000.0f);
 	quad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
 	stone->LoadEmpty(TEXTUREDIR"stone1.obj");
@@ -114,7 +114,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 		s = new SceneNode();
-		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.9f));
+		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
 		s->SetModelScale(Vector3(1, 1, 1));
 		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
@@ -140,9 +140,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s = new SceneNode();
 
 		textureMatrix.ToIdentity();
-		modelMatrix = Matrix4::Translation(Vector3(0, 1000, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+		modelMatrix = Matrix4::Translation(Vector3(0, 2000, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
 		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-		s->SetTransform(Matrix4::Translation(Vector3(0, 1000, 0)));
+		s->SetTransform(Matrix4::Translation(Vector3(0, 2000, 0)));
 		s->SetModelScale(Vector3(100, 100, 100));
 		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
 		s->SetMesh(stone);
@@ -214,6 +214,10 @@ void Renderer::UpdateScene(float msec)
 	if (currentHeightMod < 5000.0f)
 	{
 		currentHeightMod += growthSpeed * msec / 1000.0f;
+	}
+	if (sunRotation)
+	{
+		sun->SetPosition((	Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(sun->GetPosition())).GetPositionVector());
 	}
 
 	root->Update(msec);

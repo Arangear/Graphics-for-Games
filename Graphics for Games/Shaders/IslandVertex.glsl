@@ -33,9 +33,16 @@ void main(void)
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
 	OUT.texCoord = (textureMatrix * vec4(texCoord, 0.0, 1.0)).xy;
 	OUT.height = h;
+	
 	OUT.normal = calculateNormal(normalMatrix);
 	OUT.tangent = calculateTangent(normalMatrix);
 	OUT.binormal = normalize(normalMatrix * normalize(cross(OUT.normal, OUT.tangent)));
+	
+	/*
+	OUT.tangent = normalize(vec3(16.0f, (texture(heightTex, vec2(heightCoord.x + 1.0f / 512.0f, heightCoord.y)).r - texture(heightTex, heightCoord).r) * heightMod, 0.0f));
+	OUT.binormal = normalize(vec3(0.0f, (texture(heightTex, vec2(heightCoord.x, heightCoord.y + 1.0f / 512.0f)).r - texture(heightTex, heightCoord).r) * heightMod, 16.0f));
+	OUT.normal = normalize(cross(OUT.binormal, OUT.tangent));
+	*/
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
 
 	gl_Position = mvp * vec4(position.x, h, position.z, 1.0);
@@ -43,7 +50,7 @@ void main(void)
 
 vec3 calculateNormal(mat3 normalMatrix)
 {
-	float texMod = 1.0f / 1024.0f;
+	float texMod = 1.0f / 512.0f;
 	float xSpacing = 16.0f;
 	float zSpacing = 16.0f;
 	float heightMultiplier = heightMod;
@@ -98,7 +105,7 @@ vec3 calculateNormal(mat3 normalMatrix)
 //TODO: Consult and improve
 vec3 calculateTangent(mat3 normalMatrix)
 {
-	float texMod = 1.0f / 1024.0f;
+	float texMod = 1.0f / 512.0f;
 	float xSpacing = 16.0f;
 	float zSpacing = 16.0f;
 	float heightMultiplier = heightMod;
