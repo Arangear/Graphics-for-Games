@@ -7,7 +7,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 	sun = new Light(Vector3(0, 2000.0f, 0), Vector4(1, 1, 1, 1), 10000.0f);
 	quad = Mesh::GenerateQuad();
-	stone = new OBJMesh(TEXTUREDIR"stone1.obj");
+	stone = new OBJMesh();
+	stone->LoadEmpty(TEXTUREDIR"stone1.obj");
 
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
 	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
@@ -18,6 +19,12 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
 	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram())
+	{
+		return;
+	}
+
+	stone->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"RockSmooth0076_4_L.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!stone->GetTexture())
 	{
 		return;
 	}
@@ -95,14 +102,14 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 	//Water
 	{
-		float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
+		float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
 		float heightY = 500.0f;
-		float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
+		float heightZ = HEIGHT * HEIGHTMAP_Z / 2.0f;
 		waterRotate = new float(0.0f);
 
 		modelMatrix =
 			Matrix4::Translation(Vector3(0, heightY, 0)) *
-			Matrix4::Scale(Vector3(heightX * 5, 1, heightZ * 5)) *
+			Matrix4::Scale(Vector3(heightX, 1, heightZ)) *
 			Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
 		textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
@@ -118,10 +125,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->SetTransparency(true);
 
 		s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
-		s->AddUniform(new Uniform(uniform1i, "cubeTex", new int(2)));
+		s->AddUniform(new Uniform(uniform1i, "cubeTex", new int(6)));
 		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
-		s->AddTexture(Texture(GL_TEXTURE2, GL_TEXTURE_CUBE_MAP, cubeMap));
+		s->AddTexture(Texture(GL_TEXTURE6, GL_TEXTURE_CUBE_MAP, cubeMap));
 
 		s->SetRotation(true);
 		s->SetRotationPointer(waterRotate);
@@ -133,7 +140,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s = new SceneNode();
 
 		textureMatrix.ToIdentity();
-
+		modelMatrix = Matrix4::Translation(Vector3(0, 1000, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
 		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		s->SetTransform(Matrix4::Translation(Vector3(0, 1000, 0)));
 		s->SetModelScale(Vector3(100, 100, 100));
@@ -150,10 +157,14 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		root->AddChild(s);
 	}
 	SetTextureRepeating(island->GetTexture(), true);
+	SetTextureRepeating(island->GetSandTexture(), true);
+	SetTextureRepeating(island->GetRockTexture(), true);
+	SetTextureRepeating(island->GetDirtTexture(), true);
 	SetTextureRepeating(island->GetBumpMap(), true);
 	SetTextureRepeating(quad->GetTexture(), true);
+	SetTextureRepeating(stone->GetTexture(), true);
 
-	projMatrix = Matrix4::Perspective(1.0f, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -285,8 +296,8 @@ void Renderer::DrawNode(SceneNode* node)
 		SetCurrentShader(node->GetShader());
 		SetShaderLight(*sun);
 
-		node->BuildUniforms();
 		node->BindTextures();
+		node->BuildUniforms();
 
 		modelMatrix = node->GetModelMatrix();
 		textureMatrix = node->GetTextureMatrix();
@@ -327,7 +338,7 @@ void Renderer::DrawFPS()
 	UpdateShaderMatrices();
 	mesh->Draw();
 
-	projMatrix = Matrix4::Perspective(1.0f, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 	delete mesh;

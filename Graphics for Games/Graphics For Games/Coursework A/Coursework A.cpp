@@ -25,6 +25,11 @@ int main()
 	{
 		renderer.UpdateScene(window.GetTimer()->GetTimedMS());
 		renderer.RenderScene();
+
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_E))
+		{
+			renderer.ToggleCamera();
+		}
 	}
 
 	return 0;

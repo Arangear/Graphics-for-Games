@@ -137,6 +137,7 @@ public:
 	OBJMesh(std::string filename){LoadOBJMesh(filename);};
 	~OBJMesh(void){};
 	bool	LoadOBJMesh(std::string filename);
+	void LoadEmpty(std::string filename);
 
 	virtual void Draw();
 

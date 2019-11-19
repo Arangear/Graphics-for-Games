@@ -18,6 +18,8 @@ public:
 	virtual void RenderScene();
 	virtual void UpdateScene(float msec);
 
+	void ToggleCamera() { camera->ToggleAutomated(); }
+
 protected:
 	Frustum frameFrustum;
 	SceneNode* root;
@@ -46,6 +48,7 @@ protected:
 	float growthSpeed = 150.0f;
 	float currentHeightMod = 0.0f;
 	float cameraFar = 30000.0f;
+	float cameraNear = 50.0f;
 
 	void DrawSkybox();
 	void DrawFPS();

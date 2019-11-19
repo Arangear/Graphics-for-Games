@@ -57,8 +57,15 @@ void SceneNode::BuildUniforms()
 			glUniform1i(glGetUniformLocation(shader->GetProgram(), uniforms[i]->GetName()), *(int*)uniforms[i]->GetValue());
 			break;
 		case uniform3fv:
+		{
 			glUniform3fv(glGetUniformLocation(shader->GetProgram(), uniforms[i]->GetName()), 1, (float*)uniforms[i]->GetValue());
+			Vector3 vec = *(Vector3*)uniforms[i]->GetValue();
+			if (uniforms[i]->GetName() == "cameraPos")
+			{
+				bool a = true;
+			}
 			break;
+		}
 		case uniform1fv:
 			glUniform1fv(glGetUniformLocation(shader->GetProgram(), uniforms[i]->GetName()), 1, (float*)uniforms[i]->GetValue());
 			break;

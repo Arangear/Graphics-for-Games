@@ -16,21 +16,24 @@ _-_-_-_-_-_-_-""  ""
 #include "Window.h"
 #include "Matrix4.h"
 #include "Vector3.h"
+#include "Spline.h"
 
 class Camera	{
 public:
 	Camera(void){
 		yaw		= 0.0f;
 		pitch	= 0.0f;
+		generatePaths();
 	};
 
 	Camera(float pitch, float yaw, Vector3 position){
 		this->pitch		= pitch;
 		this->yaw		= yaw;
 		this->position	= position;
+		generatePaths();
 	}
 
-	~Camera(void){};
+	~Camera(void) { delete cameraPath; delete rotationPath; };
 
 	void UpdateCamera(float msec = 10.0f);
 
@@ -39,13 +42,13 @@ public:
 	Matrix4 BuildViewMatrix();
 
 	//Gets position in world space
-	Vector3 GetPosition() const { return position;}
+	const Vector3& GetPosition() const { return position;}
 	//Sets position in world space
 	void	SetPosition(Vector3 val) { position = val;}
 
 	//Gets yaw, in degrees
 	float	GetYaw()   const { return yaw;}
-	//Sets yaw, in degrees
+	//Sets yaw, in degrees 
 	void	SetYaw(float y) {yaw = y;}
 
 	//Gets pitch, in degrees
@@ -53,8 +56,16 @@ public:
 	//Sets pitch, in degrees
 	void	SetPitch(float p) {pitch = p;}
 
+	void ToggleAutomated() { automated = !automated; }
+
 protected:
 	float	yaw;
 	float	pitch;
 	Vector3 position;
+
+	bool automated = true;
+	Spline* cameraPath;
+	Spline* rotationPath;
+
+	void generatePaths();
 };
