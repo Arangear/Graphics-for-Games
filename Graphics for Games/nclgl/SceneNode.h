@@ -88,6 +88,9 @@ public:
 	void SetModelMatrix(Matrix4 matrix) { modelMatrix = matrix; }
 	Matrix4 GetModelMatrix() { return modelMatrix; }
 
+	void SetRotationMatrix(Matrix4 matrix) { rotation = matrix; }
+	Matrix4 GetRotationMatrix() { return rotation; }
+
 	void SetTextureMatrix(Matrix4 matrix) { textureMatrix = matrix; }
 	Matrix4 GetTextureMatrix();
 
@@ -110,6 +113,7 @@ protected:
 	Mesh* mesh;
 	Matrix4 worldTransform;
 	Matrix4 transform;
+	Matrix4 rotation;
 	Vector3 modelScale;
 	Vector4 colour;
 

@@ -5,6 +5,7 @@
 #include "../../nclgl/Island.h"
 #include "../../nclgl/SceneNode.h"
 #include "../../nclgl/Frustum.h"
+#include "../../nclgl/OBJMesh.h"
 #include "TextMesh.h"
 #include <algorithm>
 
@@ -24,6 +25,8 @@ protected:
 	vector<SceneNode*> transparentNodes;
 
 	Island* island;
+
+	OBJMesh* tree;
 	Camera* camera;
 	Light* sun;
 	Mesh* quad;
@@ -32,8 +35,9 @@ protected:
 
 	Shader* skyboxShader;
 	Shader* reflectShader;
-	Shader* lightShader;
+	Shader* islandShader;
 	Shader* textShader;
+	Shader* lightShader;
 
 	Font* font;
 	TextMesh* text;
