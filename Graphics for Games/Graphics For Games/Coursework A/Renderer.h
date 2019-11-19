@@ -42,6 +42,7 @@ protected:
 
 	float growthSpeed = 150.0f;
 	float currentHeightMod = 0.0f;
+	float cameraFar = 30000.0f;
 
 	void DrawSkybox();
 	void DrawFPS();

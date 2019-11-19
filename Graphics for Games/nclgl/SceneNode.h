@@ -98,6 +98,10 @@ public:
 
 	void SetRotationPointer(float* rotation) { texRotate = rotation; }
 
+	void SetTransparency(bool value) { isTransparent = value; }
+
+	bool IsTransparent() { return isTransparent; }
+
 	void BuildUniforms();
 	void BindTextures();
 
@@ -114,6 +118,7 @@ protected:
 	Matrix4 textureMatrix;
 	std::vector<Uniform*> uniforms;
 	std::vector<Texture> textures;
+	bool isTransparent = false;
 
 	bool rotate = false;
 	float* texRotate;

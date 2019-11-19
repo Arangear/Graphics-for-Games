@@ -56,9 +56,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"sgod_lf.tga", TEXTUREDIR"sgod_rt.tga", 
-									TEXTUREDIR"sgod_up.tga", TEXTUREDIR"sgod_dn.tga",
-									TEXTUREDIR"sgod_bk.tga", TEXTUREDIR"sgod_ft.tga",
+	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"bluecloud_ft.jpg", TEXTUREDIR"bluecloud_bk.jpg", 
+									TEXTUREDIR"bluecloud_up.jpg", TEXTUREDIR"bluecloud_dn.jpg",
+									TEXTUREDIR"bluecloud_rt.jpg", TEXTUREDIR"bluecloud_lf.jpg",
 									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 	if (!cubeMap)
 	{
@@ -74,18 +74,17 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 	s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
 	s->SetModelScale(Vector3(1, 1, 1));
-	s->SetBoundingRadius(3.0f * WIDTH * HEIGHTMAP_X / 4.0f);
+	s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
 	s->SetMesh(island);
 	s->SetModelMatrix(modelMatrix);
 	s->SetTextureMatrix(textureMatrix);
 	s->SetShader(lightShader);
+	s->SetTransparency(false);
 	
 	s->AddUniform(new Uniform(uniform1fv, "heightMod", (void*)&currentHeightMod));
 	s->AddUniform(new Uniform(uniform1i, "sandTex", new int(3)));
 	s->AddUniform(new Uniform(uniform1i, "rockTex", new int(4)));
 	s->AddUniform(new Uniform(uniform1i, "dirtTex", new int(5)));
-	s->AddUniform(new Uniform(uniform1i, "grassTex", new int(6)));
-	s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
 	s->AddUniform(new Uniform(uniform1i, "heightTex", new int(2)));
 	s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
@@ -98,7 +97,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	modelMatrix =
 		Matrix4::Translation(Vector3(0, heightY, 0)) *
-		Matrix4::Scale(Vector3(heightX, 1, heightZ)) *
+		Matrix4::Scale(Vector3(heightX * 5, 1, heightZ * 5)) *
 		Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
@@ -106,14 +105,15 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.9f));
 	s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
 	s->SetModelScale(Vector3(1, 1, 1));
-	s->SetBoundingRadius(3.0f * WIDTH * HEIGHTMAP_X / 4.0f);
+	s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
 	s->SetMesh(quad);
 	s->SetShader(reflectShader);
 	s->SetModelMatrix(modelMatrix);
 	s->SetTextureMatrix(textureMatrix);
+	s->SetTransparency(true);
 
 	s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
-	s->AddUniform(new Uniform(uniform1i, "cubeTex", new int(3)));
+	s->AddUniform(new Uniform(uniform1i, "cubeTex", new int(2)));
 	s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
 	s->AddTexture(Texture(GL_TEXTURE2, GL_TEXTURE_CUBE_MAP, cubeMap));
@@ -127,7 +127,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	SetTextureRepeating(island->GetBumpMap(), true);
 	SetTextureRepeating(quad->GetTexture(), true);
 
-	projMatrix = Matrix4::Perspective(1.0f, 30000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(1.0f, cameraFar, (float)width / (float)height, 45.0f);
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -161,8 +161,8 @@ void Renderer::UpdateScene(float msec)
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
 	*waterRotate += msec / 1000.0f;
-
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+
 	if (msCount >= 1000)
 	{
 		msCount = 0;
@@ -192,8 +192,6 @@ void Renderer::RenderScene()
 	DrawNodes();
 	DrawFPS();
 
-	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
-
 	SwapBuffers();
 }
 
@@ -203,7 +201,6 @@ void Renderer::DrawSkybox()
 	glDisable(GL_CULL_FACE);
 	SetCurrentShader(skyboxShader);
 
-	projMatrix = Matrix4::Perspective(1.0f, 30000.0f, (float)width / (float)height, 45.0f);
 	UpdateShaderMatrices();
 	quad->Draw();
 
@@ -219,7 +216,7 @@ void Renderer::BuildNodeLists(SceneNode* from)
 		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
 
-		if (from->GetColour().w < 1.0f)
+		if (from->IsTransparent())
 		{
 			transparentNodes.push_back(from);
 		}
@@ -301,6 +298,9 @@ void Renderer::DrawFPS()
 
 	UpdateShaderMatrices();
 	mesh->Draw();
+
+	projMatrix = Matrix4::Perspective(1.0f, cameraFar, (float)width / (float)height, 45.0f);
+	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 	delete mesh;
 
