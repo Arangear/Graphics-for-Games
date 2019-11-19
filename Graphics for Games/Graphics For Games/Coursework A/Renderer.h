@@ -26,7 +26,7 @@ protected:
 
 	Island* island;
 
-	OBJMesh* tree;
+	OBJMesh* rock;
 	Camera* camera;
 	Light* sun;
 	Mesh* quad;

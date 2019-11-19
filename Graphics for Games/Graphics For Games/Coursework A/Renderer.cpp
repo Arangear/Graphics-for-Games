@@ -7,7 +7,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 	sun = new Light(Vector3(0, 2000.0f, 0), Vector4(1, 1, 1, 1), 10000.0f);
 	quad = Mesh::GenerateQuad();
-	tree = new OBJMesh(TEXTUREDIR"bush.obj");
+	rock = new OBJMesh(TEXTUREDIR"Rock1.obj");
 
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
@@ -97,7 +97,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 	//Water
 	{
-		float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
+		float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
 		float heightY = 500.0f;
 		float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
 		waterRotate = new float(0.0f);
@@ -105,7 +105,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 		s = new SceneNode();
-		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.9f));
+		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		s->SetTransform(Matrix4::Translation(Vector3(0, heightY, 0)));
 		s->SetModelScale(Vector3(heightX * 5, 1, heightZ * 5));
 		s->SetRotationMatrix(Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f)));
@@ -127,20 +127,18 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 		root->AddChild(s);
 	}
-	//Tree
-	{
-		for (int i = 0; i < 100; i++)
-		{
+	//rock
+	/*{
 			s = new SceneNode();
 
 			textureMatrix.ToIdentity();
 
 			s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-			s->SetTransform(Matrix4::Translation(Vector3(i*50, 0, 0)));
+			s->SetTransform(Matrix4::Translation(Vector3(1500, 500, 0)));
 			s->SetRotationMatrix(Matrix4::Rotation(0, Vector3(1, 0, 0)));
-			s->SetModelScale(Vector3(10, 10, 10));
+			s->SetModelScale(Vector3(0.001, 0.001, 0.001));
 			s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
-			s->SetMesh(tree);
+			s->SetMesh(rock);
 			s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()) * s->GetRotationMatrix());
 			s->SetTextureMatrix(textureMatrix);
 			s->SetShader(lightShader);
@@ -150,8 +148,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 			s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
 			root->AddChild(s);
-		}
-	}
+	}*/
 	SetTextureRepeating(island->GetTexture(), true);
 	SetTextureRepeating(island->GetBumpMap(), true);
 	SetTextureRepeating(quad->GetTexture(), true);
@@ -175,6 +172,7 @@ Renderer::~Renderer(void)
 	delete island;
 	delete camera;
 	delete sun;
+	delete rock;
 	delete quad;
 	delete reflectShader;
 	delete islandShader;
