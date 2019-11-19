@@ -24,9 +24,8 @@ protected:
 	vector<SceneNode*> opaqueNodes;
 	vector<SceneNode*> transparentNodes;
 
+	OBJMesh* stone;
 	Island* island;
-
-	OBJMesh* rock;
 	Camera* camera;
 	Light* sun;
 	Mesh* quad;
@@ -36,8 +35,8 @@ protected:
 	Shader* skyboxShader;
 	Shader* reflectShader;
 	Shader* islandShader;
-	Shader* textShader;
 	Shader* lightShader;
+	Shader* textShader;
 
 	Font* font;
 	TextMesh* text;

@@ -7,17 +7,17 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 	sun = new Light(Vector3(0, 2000.0f, 0), Vector4(1, 1, 1, 1), 10000.0f);
 	quad = Mesh::GenerateQuad();
-	rock = new OBJMesh(TEXTUREDIR"Rock1.obj");
+	stone = new OBJMesh(TEXTUREDIR"stone1.obj");
 
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
+	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
 	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
-	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
 
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	if (!islandShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !lightShader->LinkProgram())
+	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram())
 	{
 		return;
 	}
@@ -68,7 +68,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 
 	root = new SceneNode();
-
 	SceneNode* s = new SceneNode();
 	//Island
 	{
@@ -78,7 +77,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 		s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
 		s->SetModelScale(Vector3(1, 1, 1));
-		s->SetRotationMatrix(Matrix4::Rotation(0, Vector3(1, 0, 0)));
 		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
 		s->SetMesh(island);
 		s->SetModelMatrix(modelMatrix);
@@ -97,22 +95,25 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 	//Water
 	{
-		float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
+		float heightX = -WIDTH * HEIGHTMAP_X / 2.0f;
 		float heightY = 500.0f;
 		float heightZ = -HEIGHT * HEIGHTMAP_Z / 2.0f;
 		waterRotate = new float(0.0f);
 
+		modelMatrix =
+			Matrix4::Translation(Vector3(0, heightY, 0)) *
+			Matrix4::Scale(Vector3(heightX * 5, 1, heightZ * 5)) *
+			Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f));
 		textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 		s = new SceneNode();
-		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-		s->SetTransform(Matrix4::Translation(Vector3(0, heightY, 0)));
-		s->SetModelScale(Vector3(heightX * 5, 1, heightZ * 5));
-		s->SetRotationMatrix(Matrix4::Rotation(90, Vector3(1.0f, 0.0f, 0.0f)));
+		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 0.9f));
+		s->SetTransform(Matrix4::Translation(Vector3(0, 0, 0)));
+		s->SetModelScale(Vector3(1, 1, 1));
 		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
 		s->SetMesh(quad);
 		s->SetShader(reflectShader);
-		s->SetModelMatrix(s->GetTransform()*Matrix4::Scale(s->GetModelScale())*s->GetRotationMatrix());
+		s->SetModelMatrix(modelMatrix);
 		s->SetTextureMatrix(textureMatrix);
 		s->SetTransparency(true);
 
@@ -127,28 +128,27 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 		root->AddChild(s);
 	}
-	//rock
-	/*{
-			s = new SceneNode();
+	//Stone
+	{
+		s = new SceneNode();
 
-			textureMatrix.ToIdentity();
+		textureMatrix.ToIdentity();
 
-			s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-			s->SetTransform(Matrix4::Translation(Vector3(1500, 500, 0)));
-			s->SetRotationMatrix(Matrix4::Rotation(0, Vector3(1, 0, 0)));
-			s->SetModelScale(Vector3(0.001, 0.001, 0.001));
-			s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
-			s->SetMesh(rock);
-			s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()) * s->GetRotationMatrix());
-			s->SetTextureMatrix(textureMatrix);
-			s->SetShader(lightShader);
-			s->SetTransparency(false);
+		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+		s->SetTransform(Matrix4::Translation(Vector3(0, 1000, 0)));
+		s->SetModelScale(Vector3(100, 100, 100));
+		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
+		s->SetMesh(stone);
+		s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()));
+		s->SetTextureMatrix(textureMatrix);
+		s->SetShader(lightShader);
+		s->SetTransparency(false);
 
-			s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
-			s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+		s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
+		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 
-			root->AddChild(s);
-	}*/
+		root->AddChild(s);
+	}
 	SetTextureRepeating(island->GetTexture(), true);
 	SetTextureRepeating(island->GetBumpMap(), true);
 	SetTextureRepeating(quad->GetTexture(), true);
@@ -172,12 +172,12 @@ Renderer::~Renderer(void)
 	delete island;
 	delete camera;
 	delete sun;
-	delete rock;
 	delete quad;
-	delete reflectShader;
+	delete stone;
 	delete islandShader;
-	delete skyboxShader;
+	delete reflectShader;
 	delete lightShader;
+	delete skyboxShader;
 	delete textShader;
 	delete font;
 	delete waterRotate;
@@ -288,7 +288,7 @@ void Renderer::DrawNode(SceneNode* node)
 		node->BuildUniforms();
 		node->BindTextures();
 
-		modelMatrix = node->GetTransform() * Matrix4::Scale(node->GetModelScale());
+		modelMatrix = node->GetModelMatrix();
 		textureMatrix = node->GetTextureMatrix();
 
 		UpdateShaderMatrices();
@@ -304,6 +304,8 @@ void Renderer::ClearNodeLists()
 	transparentNodes.clear();
 	opaqueNodes.clear();
 }
+
+
 
 void Renderer::DrawFPS()
 {
