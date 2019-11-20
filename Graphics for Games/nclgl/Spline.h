@@ -11,7 +11,7 @@ public:
 	void ClearWaypoints() { waypoints.clear(); }
 	void GenerateNodes();
 
-	Vector3 Next();
+	Vector3 Next(int i = 1);
 
 private:
 	std::vector<Vector3> waypoints;

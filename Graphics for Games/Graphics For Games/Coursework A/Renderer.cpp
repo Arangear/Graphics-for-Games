@@ -5,11 +5,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(100.0f, 35000.0f, 0), Vector4(1, 1, 1, 1), 55000.0f);
+	sun = new Light(Vector3(1.0f, 35000.0f, 0), Vector4(1, 1, 1, 1), 55000.0f);
 	quad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
-	stone->LoadEmpty(TEXTUREDIR"stone1.obj");
-
+	//stone->LoadEmpty(TEXTUREDIR"stone1.obj");
+	stone->LoadOBJMesh(TEXTUREDIR"stone2.obj");
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
 	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
@@ -155,7 +155,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->SetRotation(true);
 		s->SetRotationPointer(waterRotate);
 
-		root->AddChild(s);
+		//root->AddChild(s);
 	}
 	//Stones
 	{
@@ -182,6 +182,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 					s->SetTransparency(false);
 
 					s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
+					s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
 					s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 					s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
@@ -363,7 +364,7 @@ void Renderer::DrawShadowScene()
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(sun->GetPosition().Length() - 5000.0f, sun->GetPosition().Length() + 5000.0f, (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(sun->GetPosition().Length() - 5000.0f, sun->GetPosition().Length() + 5000.0f,/*1, 4000,*/ (float)width / (float)height, 45.0f);
 	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();

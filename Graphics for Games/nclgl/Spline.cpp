@@ -46,12 +46,12 @@ void Spline::GenerateNodes()
 	}
 }
 
-Vector3 Spline::Next()
+Vector3 Spline::Next(int i)
 {
-	iterator++;
-	if (iterator == nodes.size())
+	iterator+=i;
+	while (iterator >= nodes.size())
 	{
-		iterator = 0;
+		iterator -= nodes.size();
 	}
 	Vector3 result = nodes[iterator];
 	return result;

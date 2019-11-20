@@ -28,7 +28,7 @@ vec3 calculateBinormal(mat3 normalMatrix);
 
 void main(void) 
 {
-	float h = texture(heightTex, heightCoord).r * heightMod;
+	float h = texture(heightTex, heightCoord).r* heightMod;
 	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
 
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
@@ -40,7 +40,7 @@ void main(void)
 	OUT.normal = normalize(normalMatrix * normalize(cross(OUT.tangent, OUT.binormal)));
 
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
-	OUT.shadowProj = (textureMatrix * vec4(position + (OUT.normal * 1.5), 1));
+	OUT.shadowProj = (textureMatrix * vec4(vec3(position.x, h, position.z) + (OUT.normal * 1.5), 1));
 
 	gl_Position = mvp * vec4(position.x, h, position.z, 1.0);
 }
@@ -60,8 +60,8 @@ void main(void)
 vec3 calculateBinormal(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
-	float xSpacing = 16.0f;
-	float zSpacing = 16.0f;
+	float xSpacing = 160.0f;
+	float zSpacing = 160.0f;
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
@@ -97,8 +97,8 @@ vec3 calculateBinormal(mat3 normalMatrix)
 vec3 calculateTangent(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
-	float xSpacing = 16.0f;
-	float zSpacing = 16.0f;
+	float xSpacing = 160.0f;
+	float zSpacing = 160.0f;
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);

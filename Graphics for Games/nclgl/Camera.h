@@ -66,6 +66,7 @@ protected:
 	bool automated = true;
 	Spline* cameraPath;
 	Spline* rotationPath;
+	float cameraSpeed = 200.0f;
 
 	void generatePaths();
 };

@@ -49,9 +49,9 @@ void Camera::UpdateCamera(float msec)
 	}
 	else
 	{
-		position = cameraPath->Next();
+		position = cameraPath->Next((int)(cameraSpeed * msec / 1000.0f));
 
-		Vector3 direction = rotationPath->Next();
+		Vector3 direction = rotationPath->Next((int)(cameraSpeed * msec / 1000.0f));
 
 		pitch = direction.x;
 		yaw = direction.y;
@@ -72,18 +72,42 @@ Matrix4 Camera::BuildViewMatrix()	{
 
 void Camera::generatePaths()
 {
-	cameraPath = new Spline(800, false);
-	rotationPath = new Spline(800, true);
+	cameraPath = new Spline(3200, false);
+	rotationPath = new Spline(3200, true);
 
-	cameraPath->AddWaypoint(Vector3(-3000, 5000, 0));
-	cameraPath->AddWaypoint(Vector3(0, 5000, 3000));
-	cameraPath->AddWaypoint(Vector3(3000, 5000, 0));
-	cameraPath->AddWaypoint(Vector3(0, 5000, -3000));
+	cameraPath->AddWaypoint(Vector3(-4000, 5000, 0));
+	cameraPath->AddWaypoint(Vector3(-3000, 4000, 1000));
+	cameraPath->AddWaypoint(Vector3(-2000, 3000, 2000));
+	cameraPath->AddWaypoint(Vector3(-1000, 4000, 3000));
+	cameraPath->AddWaypoint(Vector3(0, 5000, 4000));
+	cameraPath->AddWaypoint(Vector3(1000, 6000, 3000));
+	cameraPath->AddWaypoint(Vector3(2000, 7000, 2000));
+	cameraPath->AddWaypoint(Vector3(3000, 6000, 1000));
+	cameraPath->AddWaypoint(Vector3(4000, 5000, 0));
+	cameraPath->AddWaypoint(Vector3(3000, 4000, -1000));
+	cameraPath->AddWaypoint(Vector3(2000, 3000, -2000));
+	cameraPath->AddWaypoint(Vector3(1000, 4000, -3000));
+	cameraPath->AddWaypoint(Vector3(0, 5000, -4000));
+	cameraPath->AddWaypoint(Vector3(-1000, 6000, -3000));
+	cameraPath->AddWaypoint(Vector3(-2000, 7000, -2000));
+	cameraPath->AddWaypoint(Vector3(-3000, 6000, -1000));
 
 	rotationPath->AddWaypoint(Vector3(-40, -90, 0));
+	rotationPath->AddWaypoint(Vector3(-35, -67.5, 0));
+	rotationPath->AddWaypoint(Vector3(-30, -45, 0));
+	rotationPath->AddWaypoint(Vector3(-35, -22.5, 0));
 	rotationPath->AddWaypoint(Vector3(-40, 0, 0));
+	rotationPath->AddWaypoint(Vector3(-45, 22.5, 0));
+	rotationPath->AddWaypoint(Vector3(-50, 45, 0));
+	rotationPath->AddWaypoint(Vector3(-45, 67.5, 0));
 	rotationPath->AddWaypoint(Vector3(-40, 90, 0));
+	rotationPath->AddWaypoint(Vector3(-35, 112.5, 0));
+	rotationPath->AddWaypoint(Vector3(-30, 135, 0));
+	rotationPath->AddWaypoint(Vector3(-35, 157.5, 0));
 	rotationPath->AddWaypoint(Vector3(-40, 180, 0));
+	rotationPath->AddWaypoint(Vector3(-45, 202.5, 0));
+	rotationPath->AddWaypoint(Vector3(-50, 225, 0));
+	rotationPath->AddWaypoint(Vector3(-45, 247.5, 0));
 
 	cameraPath->GenerateNodes();
 	rotationPath->GenerateNodes();
