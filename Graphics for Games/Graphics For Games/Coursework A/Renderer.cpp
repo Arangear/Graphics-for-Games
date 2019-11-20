@@ -15,10 +15,11 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
 	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
+	shadowShader = new Shader(SHADERDIR"ShadowVertex.glsl", SHADERDIR"ShadowFragment.glsl");
 
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram())
+	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram() || !shadowShader->LinkProgram())
 	{
 		return;
 	}
@@ -74,6 +75,24 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	glGenFramebuffers(1, &shadowFBO);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
+	glDrawBuffer(GL_NONE);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+
 	root = new SceneNode();
 	SceneNode* s = new SceneNode();
 	//Island
@@ -97,6 +116,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform1i, "dirtTex", new int(5)));
 		s->AddUniform(new Uniform(uniform1i, "heightTex", new int(2)));
 		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
+
+		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex));
 
 		root->AddChild(s);
 	}
@@ -127,6 +149,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
 		s->AddUniform(new Uniform(uniform1i, "cubeTex", new int(6)));
 		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
 		s->AddTexture(Texture(GL_TEXTURE6, GL_TEXTURE_CUBE_MAP, cubeMap));
 
@@ -135,26 +158,36 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 		root->AddChild(s);
 	}
-	//Stone
+	//Stones
 	{
-		s = new SceneNode();
+		for (int i = 0; i < 5; i++)
+		{
+			for (int j = 0; j < 5; j++)
+			{
+				for (int k = 0; k < 5; k++)
+				{
+					s = new SceneNode();
 
-		textureMatrix.ToIdentity();
-		modelMatrix = Matrix4::Translation(Vector3(0, 2000, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
-		s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-		s->SetTransform(Matrix4::Translation(Vector3(0, 2000, 0)));
-		s->SetModelScale(Vector3(100, 100, 100));
-		s->SetBoundingRadius(WIDTH * HEIGHTMAP_X * 0.75f);
-		s->SetMesh(stone);
-		s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()));
-		s->SetTextureMatrix(textureMatrix);
-		s->SetShader(lightShader);
-		s->SetTransparency(false);
+					textureMatrix.ToIdentity();
+					modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
+					s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+					s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)));
+					s->SetModelScale(Vector3(100, 100, 100));
+					s->SetBoundingRadius(200.0f);
+					s->SetMesh(stone);
+					s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()));
+					s->SetTextureMatrix(textureMatrix);
+					s->SetShader(lightShader);
+					s->SetTransparency(false);
 
-		s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
-		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+					s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
+					s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+					s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
-		root->AddChild(s);
+					root->AddChild(s);
+				}
+			}
+		}
 	}
 	SetTextureRepeating(island->GetTexture(), true);
 	SetTextureRepeating(island->GetSandTexture(), true);
@@ -179,6 +212,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 Renderer::~Renderer(void)
 {
+	glDeleteTextures(1, &shadowTex);
+	glDeleteFramebuffers(1, &shadowFBO);
 	delete root;
 	delete island;
 	delete camera;
@@ -190,6 +225,7 @@ Renderer::~Renderer(void)
 	delete lightShader;
 	delete skyboxShader;
 	delete textShader;
+	delete shadowShader;
 	delete font;
 	delete waterRotate;
 	currentShader = 0;
@@ -231,9 +267,8 @@ void Renderer::RenderScene()
 
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	DrawSkybox();
-	DrawNodes();
-	DrawFPS();
+	DrawShadowScene();
+	DrawCombinedScene();
 
 	SwapBuffers();
 }
@@ -318,6 +353,36 @@ void Renderer::ClearNodeLists()
 {
 	transparentNodes.clear();
 	opaqueNodes.clear();
+}
+
+void Renderer::DrawShadowScene()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glClear(GL_DEPTH_BUFFER_BIT);
+	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
+	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+	SetCurrentShader(shadowShader);
+	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
+	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
+	
+	UpdateShaderMatrices();
+	DrawNodes();
+
+	glUseProgram(0);
+	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+	glViewport(0, 0, width, height);
+	
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+void Renderer::DrawCombinedScene()
+{
+	viewMatrix = camera->BuildViewMatrix();
+	UpdateShaderMatrices();
+
+	DrawSkybox();
+	DrawNodes();
+	DrawFPS();
 }
 
 

@@ -4,10 +4,10 @@
     <ClCompile Include="Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Coursework A.cpp">
+    <ClCompile Include="TextMesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="TextMesh.cpp">
+    <ClCompile Include="Coursework.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

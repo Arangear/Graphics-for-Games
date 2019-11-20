@@ -73,7 +73,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Renderer.cpp" />
-    <ClCompile Include="Coursework A.cpp" />
+    <ClCompile Include="Coursework.cpp" />
     <ClCompile Include="TextMesh.cpp" />
   </ItemGroup>
   <ItemGroup>

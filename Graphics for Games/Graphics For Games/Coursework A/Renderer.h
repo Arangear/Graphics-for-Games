@@ -9,6 +9,8 @@
 #include "TextMesh.h"
 #include <algorithm>
 
+#define SHADOWSIZE 2048
+
 class Renderer : public OGLRenderer
 {
 public:
@@ -40,6 +42,10 @@ protected:
 	Shader* islandShader;
 	Shader* lightShader;
 	Shader* textShader;
+	Shader* shadowShader;
+
+	GLuint shadowTex;
+	GLuint shadowFBO;
 
 	Font* font;
 	TextMesh* text;
@@ -63,4 +69,6 @@ protected:
 	void DrawNodes();
 	void DrawNode(SceneNode* node);
 	void ClearNodeLists();
+	void DrawShadowScene();
+	void DrawCombinedScene();
 };
