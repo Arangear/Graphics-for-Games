@@ -20,10 +20,11 @@ out Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
+	vec4 shadowProj;
 } OUT;
 
-vec3 calculateNormal(mat3 normalMatrix);
 vec3 calculateTangent(mat3 normalMatrix);
+vec3 calculateBinormal(mat3 normalMatrix);
 
 void main(void) 
 {
@@ -34,21 +35,29 @@ void main(void)
 	OUT.texCoord = (textureMatrix * vec4(texCoord, 0.0, 1.0)).xy;
 	OUT.height = h;
 	
-	OUT.normal = calculateNormal(normalMatrix);
 	OUT.tangent = calculateTangent(normalMatrix);
-	OUT.binormal = normalize(normalMatrix * normalize(cross(OUT.normal, OUT.tangent)));
-	
-	/*
-	OUT.tangent = normalize(vec3(16.0f, (texture(heightTex, vec2(heightCoord.x + 1.0f / 512.0f, heightCoord.y)).r - texture(heightTex, heightCoord).r) * heightMod, 0.0f));
-	OUT.binormal = normalize(vec3(0.0f, (texture(heightTex, vec2(heightCoord.x, heightCoord.y + 1.0f / 512.0f)).r - texture(heightTex, heightCoord).r) * heightMod, 16.0f));
-	OUT.normal = normalize(cross(OUT.binormal, OUT.tangent));
-	*/
+	OUT.binormal = -calculateBinormal(normalMatrix);
+	OUT.normal = normalize(normalMatrix * normalize(cross(OUT.tangent, OUT.binormal)));
+
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
+	OUT.shadowProj = (textureMatrix * vec4(position + (OUT.normal * 1.5), 1));
 
 	gl_Position = mvp * vec4(position.x, h, position.z, 1.0);
 }
 
-vec3 calculateNormal(mat3 normalMatrix)
+//             D----C
+//            /|   /|
+//           / |  / |
+//          /  | /  |
+//         /   |/   |
+//        E----A----B
+//        |   /|   /
+//        |  / |  /
+//        | /  | /
+//        |/   |/
+//        F----G
+
+vec3 calculateBinormal(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
 	float xSpacing = 16.0f;
@@ -56,53 +65,35 @@ vec3 calculateNormal(mat3 normalMatrix)
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
-	//First triangle
-	vec3 ba = vec3(	xSpacing,
-					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
-					0.0f);
-	vec3 ca = vec3(	xSpacing,
-					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
-					zSpacing);
-	result += cross(ca, ba);
-	//Second triangle
-	ba = vec3(	0.0f,
-				(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
-				zSpacing);
-	result += cross(ba, ca); 
-	//Third triangle
-	ba = vec3(	xSpacing,
-				(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
-				0.0f);
-	ca = vec3(	xSpacing,
-				(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
-				zSpacing);
-	result += cross(ca, ba);
-	//Fourth triangle
-	ba = vec3(	0.0f,
-				(texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-				zSpacing);
-	ca = vec3(	xSpacing,
-				(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-				zSpacing);
-	result += cross(ba, ca);
-	//Fifth triangle
-	ba = vec3(	xSpacing,
-				(texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-				0.0f);
-	result += cross(ca, ba);
-	//Sixth triangle
-	ba = vec3(	0.0f,
-				(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
-				zSpacing);
-	ca = vec3(	xSpacing,
-				(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
-				zSpacing);
-	result += cross(ba, ca);
 
-	return normalize(normalMatrix * result);
+	//CB
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y + texMod)).r - texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r) * heightMultiplier,
+					zSpacing);
+	//DA
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
+					zSpacing);
+	//DA
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
+					zSpacing);
+	//EF
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
+					zSpacing);
+	//AG
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
+					zSpacing);
+	//AG
+	result += vec3(	0,
+					(texture(heightTex, vec2(heightCoord.x, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
+					zSpacing);
+
+	return -normalize(normalMatrix * normalize(result));
 }
 
-//TODO: Consult and improve
 vec3 calculateTangent(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
@@ -111,67 +102,31 @@ vec3 calculateTangent(mat3 normalMatrix)
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
-	//First triangle
-	vec2 tba = vec2(texMod, 0.0f);
-	vec2 tca = vec2(texMod, texMod);
-	vec3 ba = vec3(	xSpacing,
+
+	//BA
+	result += vec3(	xSpacing,
 					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
 					0.0f);
-	vec3 ca = vec3(	xSpacing,
-					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
-					zSpacing);
-	vec3 axis = vec3(ba * tca.y - ca * tba.y);
-	float factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	//Second triangle
-	tba = vec2(0.0f, texMod);
-	ba = vec3(0.0f,
-		(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
-		zSpacing);
-	axis = vec3(ba * tca.y - ca * tba.y);
-	factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	//Third triangle
-	tba = vec2(texMod, 0.0f);
-	ba = vec3(xSpacing,
-		(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
-		0.0f);
-	ca = vec3(xSpacing,
-		(texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
-		zSpacing);
-	axis = vec3(ba * tca.y - ca * tba.y);
-	factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	//Fourth triangle
-	tba = vec2(0.0f, texMod);
-	ba = vec3(0.0f,
-		(texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-		zSpacing);
-	ca = vec3(xSpacing,
-		(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-		zSpacing);
-	axis = vec3(ba * tca.y - ca * tba.y);
-	factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	//Fifth triangle
-	tba = vec2(texMod, 0.0f);
-	ba = vec3(xSpacing,
-		(texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
-		0.0f);
-	axis = vec3(ba * tca.y - ca * tba.y);
-	factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	//Sixth triangle
-	tba = vec2(0.0f, texMod);
-	ba = vec3(0.0f,
-		(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
-		zSpacing);
-	ca = vec3(xSpacing,
-		(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
-		zSpacing);
-	axis = vec3(ba * tca.y - ca * tba.y);
-	factor = 1.0f / (tba.x * tca.y - tca.x * tba.y);
-	result += axis * factor;
-	
-	return normalize(normalMatrix * normalize(result));
+	//CD
+	result += vec3(	xSpacing,
+					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y + texMod)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y + texMod)).r) * heightMultiplier,
+					0.0f);
+	//AE
+	result += vec3(	xSpacing,
+					(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
+					0.0f);
+	//AE
+	result += vec3(	xSpacing,
+					(texture(heightTex, heightCoord).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y)).r) * heightMultiplier,
+					0.0f);
+	//GF
+	result += vec3(	xSpacing,
+					(texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r - texture(heightTex, vec2(heightCoord.x - texMod, heightCoord.y - texMod)).r) * heightMultiplier,
+					0.0f);
+	//BA
+	result += vec3(	xSpacing,
+					(texture(heightTex, vec2(heightCoord.x + texMod, heightCoord.y)).r - texture(heightTex, heightCoord).r) * heightMultiplier,
+					0.0f);
+
+	return -normalize(normalMatrix * normalize(result));
 }

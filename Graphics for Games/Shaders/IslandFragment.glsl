@@ -3,7 +3,7 @@
 uniform sampler2D sandTex;
 uniform sampler2D rockTex;
 uniform sampler2D dirtTex;
-uniform sampler2D bumpTex;
+uniform sampler2DShadow shadowTex;
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -18,6 +18,7 @@ in Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
+	vec4 shadowProj;
 } IN;
 
 out vec4 fragColour;
@@ -29,7 +30,6 @@ void main(void)
 	vec4 diffuse = getDiffuse();
 
 	mat3 TBN = mat3(IN.tangent, IN.binormal, IN.normal);
-	vec3 normal = normalize(TBN * (texture(bumpTex, IN.texCoord).rgb * 2.0f - 1.0f));
 
 	vec3 incident = normalize(lightPos - IN.worldPos);
 	float lambert = max(0.0, dot(incident, IN.normal));
@@ -42,6 +42,14 @@ void main(void)
 
 	float rFactor = max(0.0, dot(halfDir, IN.normal));
 	float sFactor = pow(rFactor, 10.0);
+
+	float shadow = 1.0;
+	if (IN.shadowProj.w > 0.0) 
+	{
+		shadow = textureProj(shadowTex, IN.shadowProj);
+	}
+	
+	lambert *= shadow;
 
 	vec3 colour = diffuse.rgb * lightColour.rgb;
 	colour += lightColour.rgb * sFactor * 0.1;

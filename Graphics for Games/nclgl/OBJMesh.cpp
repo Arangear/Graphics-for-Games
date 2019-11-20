@@ -251,6 +251,7 @@ void OBJMesh::LoadEmpty(std::string filename)
 	LoadOBJMesh(filename);
 	delete[] normals;
 	GenerateNormals();
+	GenerateTangents();
 	BufferData();
 	return;
 }

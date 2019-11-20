@@ -15,17 +15,22 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
 	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
-	shadowShader = new Shader(SHADERDIR"ShadowVertex.glsl", SHADERDIR"ShadowFragment.glsl");
 
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram() || !shadowShader->LinkProgram())
+	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram())
 	{
 		return;
 	}
 
 	stone->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"RockSmooth0076_4_L.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	if (!stone->GetTexture())
+	{
+		return;
+	}
+
+	stone->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"rockBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
+	if (!stone->GetBumpMap())
 	{
 		return;
 	}
@@ -44,12 +49,6 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	island->SetDirtTexture(SOIL_load_OGL_texture(TEXTUREDIR"dirt.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	if (!island->GetDirtTexture())
-	{
-		return;
-	}
-
-	island->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"Barren RedsDOT3.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetBumpMap())
 	{
 		return;
 	}
@@ -160,18 +159,20 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 	//Stones
 	{
-		for (int i = 0; i < 5; i++)
+		//for (int i = 0; i < 5; i++)
 		{
-			for (int j = 0; j < 5; j++)
+			//for (int j = 0; j < 5; j++)
 			{
-				for (int k = 0; k < 5; k++)
+				//for (int k = 0; k < 5; k++)
 				{
 					s = new SceneNode();
 
 					textureMatrix.ToIdentity();
-					modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
+					//modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
+					modelMatrix = Matrix4::Translation(Vector3(0, 2500, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
 					s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-					s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)));
+					//s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)));
+					s->SetTransform(Matrix4::Translation(Vector3(0, 2500, 0)));
 					s->SetModelScale(Vector3(100, 100, 100));
 					s->SetBoundingRadius(200.0f);
 					s->SetMesh(stone);
@@ -225,7 +226,6 @@ Renderer::~Renderer(void)
 	delete lightShader;
 	delete skyboxShader;
 	delete textShader;
-	delete shadowShader;
 	delete font;
 	delete waterRotate;
 	currentShader = 0;
@@ -253,7 +253,7 @@ void Renderer::UpdateScene(float msec)
 	}
 	if (sunRotation)
 	{
-		sun->SetPosition((	Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(sun->GetPosition())).GetPositionVector());
+		sun->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(sun->GetPosition())).GetPositionVector());
 	}
 
 	root->Update(msec);
@@ -357,12 +357,13 @@ void Renderer::ClearNodeLists()
 
 void Renderer::DrawShadowScene()
 {
+	glDisable(GL_CULL_FACE);
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
-	SetCurrentShader(shadowShader);
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
+	projMatrix = Matrix4::Perspective(sun->GetPosition().Length() - 5000.0f, sun->GetPosition().Length() + 5000.0f, (float)width / (float)height, 45.0f);
 	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();
@@ -372,7 +373,10 @@ void Renderer::DrawShadowScene()
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glViewport(0, 0, width, height);
 	
+	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glEnable(GL_CULL_FACE);
 }
 
 void Renderer::DrawCombinedScene()

@@ -42,7 +42,6 @@ protected:
 	Shader* islandShader;
 	Shader* lightShader;
 	Shader* textShader;
-	Shader* shadowShader;
 
 	GLuint shadowTex;
 	GLuint shadowFBO;
