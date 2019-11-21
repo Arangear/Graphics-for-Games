@@ -179,6 +179,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 					s->SetTextureMatrix(textureMatrix);
 					s->SetShader(lightShader);
 					s->SetTransparency(false);
+					s->SetDrawBack(true);
 
 					s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
 					s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
@@ -268,6 +269,7 @@ void Renderer::RenderScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	DrawShadowScene();
+
 	DrawCombinedScene();
 
 	SwapBuffers();
@@ -315,23 +317,29 @@ void Renderer::SortNodeLists()
 	std::sort(opaqueNodes.begin(), opaqueNodes.end(), SceneNode::CompareByCameraDistance);
 }
 
-void Renderer::DrawNodes()
+void Renderer::DrawNodes(bool shadow)
 {
 	for (vector<SceneNode*>::const_iterator i = opaqueNodes.begin(); i != opaqueNodes.end(); ++i)
 	{
-		DrawNode((*i));
+		DrawNode((*i), shadow);
 	}
 
 	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodes.rbegin(); i != transparentNodes.rend(); ++i)
 	{
-		DrawNode((*i));
+		DrawNode((*i), shadow);
 	}
 }
 
-void Renderer::DrawNode(SceneNode* node)
+void Renderer::DrawNode(SceneNode* node, bool shadow)
 {
 	if (node->GetMesh())
 	{
+		if (shadow)
+		{
+			glEnable(GL_CULL_FACE);
+			glCullFace(GL_FRONT);
+		}
+
 		SetCurrentShader(node->GetShader());
 		SetShaderLight(*sun);
 
@@ -344,6 +352,12 @@ void Renderer::DrawNode(SceneNode* node)
 		UpdateShaderMatrices();
 
 		node->Draw(*this);
+
+		if (shadow)
+		{
+			glCullFace(GL_BACK);
+			glDisable(GL_CULL_FACE);
+		}
 
 		glUseProgram(0);
 	}
@@ -366,8 +380,8 @@ void Renderer::DrawShadowScene()
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(1.0f, 300000.0f, (float)width / (float)height, 45.0f);
-	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
+	projMatrix = Matrix4::Perspective(2000.0f, 20000.0f, 1, 80.0f);
+	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();
 	DrawNodes();

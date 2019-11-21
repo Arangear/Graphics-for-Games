@@ -49,15 +49,12 @@ void main(void)
 		shadow = textureProj(shadowTex, IN.shadowProj);
 	}
 	
-	//lambert *= shadow;
+	lambert *= shadow;
 
 	vec3 colour = diffuse.rgb * lightColour.rgb;
 	colour += lightColour.rgb * sFactor * 0.1;
 	fragColour = vec4(colour * atten * lambert, diffuse.a);
 	fragColour.rgb += diffuse.rgb * lightColour.rgb * 0.1;
-
-
-	//fragColour = vec4(shadow, shadow, shadow, 1.0);
 }
 
 vec4 getDiffuse()

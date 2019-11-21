@@ -3,6 +3,7 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 textureMatrix;
+uniform mat4 shadowMatrix;
 
 in vec3 position;
 in vec4 colour;
@@ -33,7 +34,7 @@ void main(void)
 	OUT.binormal = normalize(normalMatrix * normalize(cross(normal, tangent)));
 	
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
-	OUT.shadowProj = (textureMatrix * vec4(position + (normal * 1.5), 1));
+	OUT.shadowProj = (shadowMatrix * modelMatrix * vec4(position + (normal * 1.5), 1));
 
-	gl_Position = (projMatrix * viewMatrix * modelMatrix ) * vec4 (position, 1.0);
+	gl_Position = (projMatrix * viewMatrix * modelMatrix ) * vec4(position, 1.0);
 }

@@ -100,6 +100,9 @@ public:
 
 	void SetTransparency(bool value) { isTransparent = value; }
 
+	void SetDrawBack(bool value) { drawBack = value; }
+	bool GetDrawBack() { return drawBack; }
+
 	bool IsTransparent() { return isTransparent; }
 
 	void BuildUniforms();
@@ -119,6 +122,8 @@ protected:
 	std::vector<Uniform*> uniforms;
 	std::vector<Texture> textures;
 	bool isTransparent = false;
+
+	bool drawBack = false;
 
 	bool rotate = false;
 	float* texRotate;
