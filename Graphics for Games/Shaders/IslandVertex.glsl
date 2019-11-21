@@ -28,20 +28,27 @@ vec3 calculateBinormal(mat3 normalMatrix);
 
 void main(void) 
 {
-	float h = texture(heightTex, heightCoord).r* heightMod;
-	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix)));
+	float h = texture(heightTex, heightCoord).r * heightMod;
+	mat3 normalMatrix = transpose(inverse(mat3(modelMatrix))); // modelMatrix for Island should be Identity => normalMatrix should be Identity (verified)
 
 	mat4 mvp = projMatrix * viewMatrix * modelMatrix;
-	OUT.texCoord = (textureMatrix * vec4(texCoord, 0.0, 1.0)).xy;
+	OUT.texCoord = (textureMatrix * vec4(texCoord, 0.0, 1.0)).xy; // textureMatrix for Island should be Identity (verified)
 	OUT.height = h;
 	
 	OUT.tangent = calculateTangent(normalMatrix);
-	OUT.binormal = -calculateBinormal(normalMatrix);
+	OUT.binormal = calculateBinormal(normalMatrix);
 	OUT.normal = normalize(normalMatrix * normalize(cross(OUT.tangent, OUT.binormal)));
 
+	/*
+	OUT.tangent = normalize(normalMatrix * vec3(1, 0, 0));
+	OUT.binormal = normalize(normalMatrix * vec3(0, 0, -1));
+	OUT.normal = normalize(normalMatrix * vec3(0, 1, 0));
+	*/
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
-	OUT.shadowProj = (textureMatrix * vec4(vec3(position.x, h, position.z) + (OUT.normal * 1.5), 1));
+	//OUT.shadowProj = (textureMatrix * vec4(position + (vec3(0, 1, 0) * 1.5), 1)); // w component should always be 1 (true since textureMatrix is Identity)
+	OUT.shadowProj = (textureMatrix * vec4(vec3(position.x, h, position.z) + (cross(OUT.tangent, OUT.binormal) * 1.5), 1));
 
+	//gl_Position = mvp * vec4(position, 1.0);
 	gl_Position = mvp * vec4(position.x, h, position.z, 1.0);
 }
 
@@ -60,8 +67,8 @@ void main(void)
 vec3 calculateBinormal(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
-	float xSpacing = 160.0f;
-	float zSpacing = 160.0f;
+	float xSpacing = 8.0f;
+	float zSpacing = 8.0f;
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);
@@ -91,14 +98,14 @@ vec3 calculateBinormal(mat3 normalMatrix)
 					(texture(heightTex, vec2(heightCoord.x, heightCoord.y)).r - texture(heightTex, vec2(heightCoord.x, heightCoord.y - texMod)).r) * heightMultiplier,
 					zSpacing);
 
-	return -normalize(normalMatrix * normalize(result));
+	return normalize(normalMatrix * normalize(result));
 }
 
 vec3 calculateTangent(mat3 normalMatrix)
 {
 	float texMod = 1.0f / 512.0f;
-	float xSpacing = 160.0f;
-	float zSpacing = 160.0f;
+	float xSpacing = 8.0f;
+	float zSpacing = 8.0f;
 	float heightMultiplier = heightMod;
 
 	vec3 result = vec3(0);

@@ -5,10 +5,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(1.0f, 35000.0f, 0), Vector4(1, 1, 1, 1), 55000.0f);
+	sun = new Light(Vector3(300.0f, 5000.0f, 0), Vector4(1, 1, 1, 1), 11000.0f);
 	quad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
-	//stone->LoadEmpty(TEXTUREDIR"stone1.obj");
 	stone->LoadOBJMesh(TEXTUREDIR"stone2.obj");
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
 	lightShader = new Shader(SHADERDIR"PerPixelVertex.glsl", SHADERDIR"PerPixelFragment.glsl");
@@ -155,7 +154,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->SetRotation(true);
 		s->SetRotationPointer(waterRotate);
 
-		//root->AddChild(s);
+		root->AddChild(s);
 	}
 	//Stones
 	{
@@ -169,10 +168,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 					textureMatrix.ToIdentity();
 					//modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
-					modelMatrix = Matrix4::Translation(Vector3(0, 2500, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+					modelMatrix = Matrix4::Translation(Vector3(0, 1250, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
 					s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 					//s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)));
-					s->SetTransform(Matrix4::Translation(Vector3(0, 2500, 0)));
+					s->SetTransform(Matrix4::Translation(Vector3(0, 1500, 0)));
 					s->SetModelScale(Vector3(100, 100, 100));
 					s->SetBoundingRadius(200.0f);
 					s->SetMesh(stone);
@@ -359,12 +358,15 @@ void Renderer::ClearNodeLists()
 void Renderer::DrawShadowScene()
 {
 	glDisable(GL_CULL_FACE);
+	glDisable(GL_BLEND);
+
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(sun->GetPosition().Length() - 5000.0f, sun->GetPosition().Length() + 5000.0f,/*1, 4000,*/ (float)width / (float)height, 45.0f);
+	projMatrix = Matrix4::Perspective(1.0f, 300000.0f, (float)width / (float)height, 45.0f);
 	textureMatrix = biasMatrix * (projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();
@@ -378,6 +380,7 @@ void Renderer::DrawShadowScene()
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
 }
 
 void Renderer::DrawCombinedScene()
@@ -389,8 +392,6 @@ void Renderer::DrawCombinedScene()
 	DrawNodes();
 	DrawFPS();
 }
-
-
 
 void Renderer::DrawFPS()
 {

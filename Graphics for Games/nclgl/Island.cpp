@@ -49,6 +49,9 @@ Island::Island()
 Island::~Island()
 {
 	glDeleteTextures(1, &heightTexture);
+	glDeleteTextures(1, &sandTexture);
+	glDeleteTextures(1, &dirtTexture);
+	glDeleteTextures(1, &rockTexture);
 	delete[] heightCoords;
 }
 

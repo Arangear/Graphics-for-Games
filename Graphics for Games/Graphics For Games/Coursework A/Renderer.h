@@ -53,7 +53,7 @@ protected:
 
 	float growthSpeed = 150.0f;
 	float currentHeightMod = 0.0f;
-	float cameraFar = 30000.0f;
+	float cameraFar = 15000.0f;
 	float cameraNear = 50.0f;
 
 	float sunSpeed = 30.0f;

@@ -246,16 +246,6 @@ bool	OBJMesh::LoadOBJMesh(std::string filename)	{
 	return true;
 }
 
-void OBJMesh::LoadEmpty(std::string filename)
-{
-	LoadOBJMesh(filename);
-	delete[] normals;
-	GenerateNormals();
-	GenerateTangents();
-	BufferData();
-	return;
-}
-
 /*
 Draws the current OBJMesh. The handy thing about overloaded virtual functions
 is that they can still run the code they have 'overridden', by calling the 

@@ -5,8 +5,8 @@
 #define WIDTH 1024
 #define HEIGHT 1024
 
-#define HEIGHTMAP_X 160.0f
-#define HEIGHTMAP_Z 160.0f
+#define HEIGHTMAP_X 16.0f
+#define HEIGHTMAP_Z 16.0f
 #define HEIGHTMAP_Y 1.25f
 #define HEIGHTMAP_TEX_X 1.0f / 512.0f
 #define HEIGHTMAP_TEX_Z 1.0f / 512.0f
