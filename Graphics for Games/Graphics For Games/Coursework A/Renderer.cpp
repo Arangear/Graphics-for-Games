@@ -433,6 +433,7 @@ void Renderer::DrawCombinedScene()
 {
 	currentCameraPosition = camera->GetPosition();
 	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
 	ClearNodeLists();
@@ -460,8 +461,8 @@ void Renderer::DrawCombinedScene()
 
 void Renderer::DrawSobel()
 {
-	glDisable(GL_DEPTH_TEST);
-
+	modelMatrix.ToIdentity();
+	textureMatrix.ToIdentity();
 	glBindFramebuffer(GL_FRAMEBUFFER, sobelFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
