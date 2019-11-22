@@ -22,6 +22,7 @@ public:
 
 	void ToggleCamera() { camera->ToggleAutomated(); }
 	void ToggleSunRotation() { sunRotation = !sunRotation; }
+	void ToggleEdgeDetection() { edgeDetection = !edgeDetection; }
 
 protected:
 	Frustum frameFrustum;
@@ -42,9 +43,17 @@ protected:
 	Shader* islandShader;
 	Shader* lightShader;
 	Shader* textShader;
+	Shader* sobelShader;
 
 	GLuint shadowTex;
 	GLuint shadowFBO;
+
+	GLuint bufferFBO;
+	GLuint sobelFBO;
+	GLuint bufferColourTex[2];
+	GLuint bufferDepthTex;
+
+	Vector3 currentCameraPosition;
 
 	Font* font;
 	TextMesh* text;
@@ -58,6 +67,8 @@ protected:
 
 	float sunSpeed = 30.0f;
 	bool sunRotation = false;
+
+	bool edgeDetection = false;
 
 	void DrawSkybox();
 	void DrawFPS();

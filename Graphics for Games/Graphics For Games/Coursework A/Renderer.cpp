@@ -14,65 +14,45 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	reflectShader = new Shader(SHADERDIR"ReflectVertex.glsl", SHADERDIR"ReflectFragment.glsl");
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
 	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
+	sobelShader = new Shader(SHADERDIR"SobelVertex.glsl", SHADERDIR"SobelFragment.glsl");
 
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
-	if (!lightShader->LinkProgram() || !reflectShader->LinkProgram() || !skyboxShader->LinkProgram() || !textShader->LinkProgram() || !islandShader->LinkProgram())
+	if (!lightShader->LinkProgram() ||
+		!reflectShader->LinkProgram() ||
+		!skyboxShader->LinkProgram() ||
+		!textShader->LinkProgram() ||
+		!islandShader->LinkProgram() ||
+		!sobelShader->LinkProgram())
 	{
 		return;
 	}
 
 	stone->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"RockSmooth0076_4_L.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!stone->GetTexture())
-	{
-		return;
-	}
-
 	stone->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"rockBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!stone->GetBumpMap())
-	{
-		return;
-	}
-
 	island->SetSandTexture(SOIL_load_OGL_texture(TEXTUREDIR"sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetSandTexture())
-	{
-		return;
-	}
-
 	island->SetRockTexture(SOIL_load_OGL_texture(TEXTUREDIR"rock.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetRockTexture())
-	{
-		return;
-	}
-
 	island->SetDirtTexture(SOIL_load_OGL_texture(TEXTUREDIR"dirt.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetDirtTexture())
-	{
-		return;
-	}
-
 	island->SetHeightTexture(SOIL_load_OGL_texture(TEXTUREDIR"Bornholm.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!island->GetHeightTexture())
-	{
-		return;
-	}
-
 	quad->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"water.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
-	if (!quad->GetTexture())
-	{
-		return;
-	}
-
-	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"bluecloud_ft.jpg", TEXTUREDIR"bluecloud_bk.jpg", 
+	cubeMap = SOIL_load_OGL_cubemap(TEXTUREDIR"bluecloud_ft.jpg", TEXTUREDIR"bluecloud_bk.jpg",
 									TEXTUREDIR"bluecloud_up.jpg", TEXTUREDIR"bluecloud_dn.jpg",
 									TEXTUREDIR"bluecloud_rt.jpg", TEXTUREDIR"bluecloud_lf.jpg",
 									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
-	if (!cubeMap)
+
+	if (!stone->GetTexture() ||
+		!stone->GetBumpMap() ||
+		!island->GetSandTexture() ||
+		!island->GetRockTexture() ||
+		!island->GetDirtTexture() ||
+		!island->GetHeightTexture() ||
+		!quad->GetTexture() ||
+		!cubeMap)
 	{
 		return;
 	}
 
+	//Shadow texture
 	glGenTextures(1, &shadowTex);
 	glBindTexture(GL_TEXTURE_2D, shadowTex);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -88,6 +68,41 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
 	glDrawBuffer(GL_NONE);
+
+	//Scene depth texture
+	glGenTextures(1, &bufferDepthTex);
+	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
+
+	//Colour textures
+	for (int i = 0; i < 2; i++)
+	{
+		glGenTextures(1, &bufferColourTex[i]);
+		glBindTexture(GL_TEXTURE_2D, bufferColourTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+	}
+
+	glGenFramebuffers(1, &bufferFBO);
+	glGenFramebuffers(1, &sobelFBO);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, bufferDepthTex, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[0], 0);
+	
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || !bufferDepthTex || !bufferColourTex[0])
+	{
+		return;
+	}
+
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 
@@ -158,36 +173,33 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 	//Stones
 	{
-		//for (int i = 0; i < 5; i++)
+		for (int i = 0; i < 5; i++)
 		{
-			//for (int j = 0; j < 5; j++)
+			for (int j = 0; j < 5; j++)
 			{
-				//for (int k = 0; k < 5; k++)
-				{
-					s = new SceneNode();
+				s = new SceneNode();
 
-					textureMatrix.ToIdentity();
-					//modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
-					modelMatrix = Matrix4::Translation(Vector3(0, 1250, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
-					s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
-					//s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500 + (j - 2) * 300, (k - 2) * 300)));
-					s->SetTransform(Matrix4::Translation(Vector3(0, 1500, 0)));
-					s->SetModelScale(Vector3(100, 100, 100));
-					s->SetBoundingRadius(200.0f);
-					s->SetMesh(stone);
-					s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()));
-					s->SetTextureMatrix(textureMatrix);
-					s->SetShader(lightShader);
-					s->SetTransparency(false);
-					s->SetDrawBack(true);
+				textureMatrix.ToIdentity();
+				modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500, (j - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
+				//modelMatrix = Matrix4::Translation(Vector3(0, 1250, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
+				s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
+				s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500, (j - 2) * 300)));
+				//s->SetTransform(Matrix4::Translation(Vector3(0, 1500, 0)));
+				s->SetModelScale(Vector3(100, 100, 100));
+				s->SetBoundingRadius(200.0f);
+				s->SetMesh(stone);
+				s->SetModelMatrix(s->GetTransform() * Matrix4::Scale(s->GetModelScale()));
+				s->SetTextureMatrix(textureMatrix);
+				s->SetShader(lightShader);
+				s->SetTransparency(false);
+				s->SetDrawBack(true);
 
-					s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
-					s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
-					s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
-					s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
+				s->AddUniform(new Uniform(uniform1i, "diffuseTex", new int(0)));
+				s->AddUniform(new Uniform(uniform1i, "bumpTex", new int(1)));
+				s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
+				s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
-					root->AddChild(s);
-				}
+				root->AddChild(s);
 			}
 		}
 	}
@@ -215,18 +227,27 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 Renderer::~Renderer(void)
 {
 	glDeleteTextures(1, &shadowTex);
+	glDeleteTextures(1, &bufferDepthTex);
+	glDeleteTextures(2, bufferColourTex);
+
 	glDeleteFramebuffers(1, &shadowFBO);
+	glDeleteFramebuffers(1, &bufferFBO);
+	glDeleteFramebuffers(1, &sobelFBO);
+
 	delete root;
 	delete island;
 	delete camera;
 	delete sun;
 	delete quad;
 	delete stone;
+
 	delete islandShader;
 	delete reflectShader;
 	delete lightShader;
 	delete skyboxShader;
 	delete textShader;
+	delete sobelShader;
+
 	delete font;
 	delete waterRotate;
 	currentShader = 0;
@@ -262,14 +283,9 @@ void Renderer::UpdateScene(float msec)
 
 void Renderer::RenderScene()
 {
-	ClearNodeLists();
-	BuildNodeLists(root);
-	SortNodeLists();
-
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	DrawShadowScene();
-
 	DrawCombinedScene();
 
 	SwapBuffers();
@@ -293,7 +309,7 @@ void Renderer::BuildNodeLists(SceneNode* from)
 {
 	if (frameFrustum.InsideFrustum(*from))
 	{
-		Vector3 dir = from->GetWorldTransform().GetPositionVector() - camera->GetPosition();
+		Vector3 dir = from->GetWorldTransform().GetPositionVector() - currentCameraPosition;
 		from->SetCameraDistance(Vector3::Dot(dir, dir));
 
 		if (from->IsTransparent())
@@ -379,11 +395,18 @@ void Renderer::DrawShadowScene()
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
+	currentCameraPosition = sun->GetPosition();
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
 	projMatrix = Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f);
 	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
+	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();
+
+	ClearNodeLists();
+	BuildNodeLists(root);
+	SortNodeLists();
+
 	DrawNodes();
 
 	glUseProgram(0);
@@ -399,7 +422,14 @@ void Renderer::DrawShadowScene()
 
 void Renderer::DrawCombinedScene()
 {
+	currentCameraPosition = camera->GetPosition();
 	viewMatrix = camera->BuildViewMatrix();
+	frameFrustum.FromMatrix(projMatrix * viewMatrix);
+
+	ClearNodeLists();
+	BuildNodeLists(root);
+	SortNodeLists();
+
 	UpdateShaderMatrices();
 
 	DrawSkybox();

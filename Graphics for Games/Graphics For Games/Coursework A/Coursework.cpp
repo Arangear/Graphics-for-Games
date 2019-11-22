@@ -34,6 +34,10 @@ int main()
 		{
 			renderer.ToggleSunRotation();
 		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_1))
+		{
+			renderer.ToggleEdgeDetection();
+		}
 	}
 
 	return 0;
