@@ -5,7 +5,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(300.0f, 5000.0f, 0), Vector4(1, 1, 1, 1), 11000.0f);
+	sun = new Light(Vector3(300.0f, 10000.0f, 0), Vector4(1, 1, 1, 1), 21000.0f);
 	quad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
 	stone->LoadOBJMesh(TEXTUREDIR"stone2.obj");
@@ -380,7 +380,7 @@ void Renderer::DrawShadowScene()
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
 	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(2000.0f, 20000.0f, 1, 80.0f);
+	projMatrix = Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f);
 	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
 	
 	UpdateShaderMatrices();

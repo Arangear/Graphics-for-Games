@@ -18,7 +18,8 @@ in Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj;
+	vec4 shadowProj[9];
+	//vec4 shadowProj;
 } IN;
 
 out vec4 fragColour;
@@ -44,11 +45,26 @@ void main(void)
 	float sFactor = pow(rFactor, 10.0);
 
 	float shadow = 1.0;
-	if (IN.shadowProj.w > 0.0) 
+	float count = 0.0;
+	float tmp = 0.0;
+	for (int i = 0; i < 9; i++)
+	{
+		if (IN.shadowProj[i].w > 0.0)
+		{
+			tmp += textureProj(shadowTex, IN.shadowProj[i]);
+			count += 1.0;
+		}
+	}
+	if (count != 0.0)
+	{
+		shadow = tmp / count;
+	}
+	/*
+	if (IN.shadowProj.w > 0.0)
 	{
 		shadow = textureProj(shadowTex, IN.shadowProj);
 	}
-	
+	*/
 	lambert *= shadow;
 
 	vec3 colour = diffuse.rgb * lightColour.rgb;
