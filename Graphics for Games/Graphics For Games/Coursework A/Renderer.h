@@ -35,6 +35,7 @@ protected:
 	Camera* camera;
 	Light* sun;
 	Mesh* quad;
+	Mesh* sobelQuad;
 	GLuint cubeMap;
 	float* waterRotate;
 
@@ -44,6 +45,7 @@ protected:
 	Shader* lightShader;
 	Shader* textShader;
 	Shader* sobelShader;
+	Shader* sceneShader;
 
 	GLuint shadowTex;
 	GLuint shadowFBO;
@@ -80,4 +82,6 @@ protected:
 	void ClearNodeLists();
 	void DrawShadowScene();
 	void DrawCombinedScene();
+	void DrawSobel();
+	void PresentScene();
 };

@@ -7,6 +7,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 	sun = new Light(Vector3(300.0f, 10000.0f, 0), Vector4(1, 1, 1, 1), 21000.0f);
 	quad = Mesh::GenerateQuad();
+	sobelQuad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
 	stone->LoadOBJMesh(TEXTUREDIR"stone2.obj");
 	islandShader = new Shader(SHADERDIR"IslandVertex.glsl", SHADERDIR"IslandFragment.glsl");
@@ -15,6 +16,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	skyboxShader = new Shader(SHADERDIR"SkyboxVertex.glsl", SHADERDIR"SkyboxFragment.glsl");
 	textShader = new Shader(SHADERDIR"TextVertex.glsl", SHADERDIR"TextFragment.glsl");
 	sobelShader = new Shader(SHADERDIR"SobelVertex.glsl", SHADERDIR"SobelFragment.glsl");
+	sceneShader = new Shader(SHADERDIR"SceneVertex.glsl", SHADERDIR"SceneFragment.glsl");
 
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
@@ -23,7 +25,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		!skyboxShader->LinkProgram() ||
 		!textShader->LinkProgram() ||
 		!islandShader->LinkProgram() ||
-		!sobelShader->LinkProgram())
+		!sobelShader->LinkProgram() ||
+		!sceneShader->LinkProgram())
 	{
 		return;
 	}
@@ -247,6 +250,7 @@ Renderer::~Renderer(void)
 	delete skyboxShader;
 	delete textShader;
 	delete sobelShader;
+	delete sceneShader;
 
 	delete font;
 	delete waterRotate;
@@ -287,6 +291,11 @@ void Renderer::RenderScene()
 
 	DrawShadowScene();
 	DrawCombinedScene();
+	if (edgeDetection)
+	{
+		DrawSobel();
+		PresentScene();
+	}
 
 	SwapBuffers();
 }
@@ -432,10 +441,71 @@ void Renderer::DrawCombinedScene()
 
 	UpdateShaderMatrices();
 
+	if (edgeDetection)
+	{
+		glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
+		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	}
+
 	DrawSkybox();
 	DrawNodes();
 	DrawFPS();
+
+	if (edgeDetection)
+	{
+		glUseProgram(0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	}
 }
+
+void Renderer::DrawSobel()
+{
+	glDisable(GL_DEPTH_TEST);
+
+	glBindFramebuffer(GL_FRAMEBUFFER, sobelFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	
+	SetCurrentShader(sobelShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	
+	glDisable(GL_DEPTH_TEST);
+	
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);
+
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "isVertical"), 0);
+	
+	sobelQuad->SetTexture(bufferColourTex[0]);
+	sobelQuad->Draw();
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "isVertical"), 1);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[0], 0);
+	
+	sobelQuad->SetTexture(bufferColourTex[1]);
+	sobelQuad->Draw();
+
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glUseProgram(0);
+	
+	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::PresentScene()
+{
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
+	SetCurrentShader(sceneShader);
+	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
+	viewMatrix.ToIdentity();
+	UpdateShaderMatrices();
+	sobelQuad->SetTexture(bufferColourTex[0]);
+	sobelQuad->Draw();
+	glUseProgram(0);
+}
+
 
 void Renderer::DrawFPS()
 {
