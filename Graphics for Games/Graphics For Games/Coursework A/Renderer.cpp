@@ -11,9 +11,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 
-	lights = new Light*[2];
-	lights[0] = new Light(Vector3(300.0f, 10000.0f, 0), Vector3(0,0,0), Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f), Vector4(1, 1, 1, 1), 21000.0f);
-	lights[1] = new Light(camera->GetPosition(), Vector3(0,-1,0), Matrix4::Perspective(1.0f, 1000.0f, 1.0f, 30.0f), Vector4(1, 1, 1, 1), 1000.0f, true);
+	light = new Light(Vector3(300.0f, 12000.0f, 0), Vector3(0,0,0), Matrix4::Perspective(7900.0f, 16100.0f, 1, 89.0f), Vector4(1, 1, 1, 1), 21000.0f);
 
 	//Set up projection matrix
 	cameraProjectionMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
@@ -72,21 +70,19 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 
-	//Prepare shadow textures and FBO
-	for(int i=0;i<2;i++)
-	{
-		glGenTextures(1, &shadowTex[i]);
-		glBindTexture(GL_TEXTURE_2D, shadowTex[i]);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	}
+	//Prepare shadow texture and FBO
+	glGenTextures(1, &shadowTex);
+	glBindTexture(GL_TEXTURE_2D, shadowTex);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	
 	glGenFramebuffers(1, &shadowFBO);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
 	glDrawBuffer(GL_NONE);
 
 	//Prepare scene depth texture
@@ -152,8 +148,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
-		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
-		s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
+		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex));
 
 		root->AddChild(s);
 	}
@@ -187,8 +182,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
 		s->AddTexture(Texture(GL_TEXTURE6, GL_TEXTURE_CUBE_MAP, cubeMap));
-		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
-		s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
+		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex));
 
 		s->SetRotation(true);
 		s->SetRotationPointer(waterRotate);
@@ -221,8 +215,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 				s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 				s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
-				s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
-				s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
+				s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex));
 
 				root->AddChild(s);
 			}
@@ -251,7 +244,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 Renderer::~Renderer(void)
 {
-	glDeleteTextures(2, shadowTex);
+	glDeleteTextures(1, &shadowTex);
 	glDeleteTextures(1, &bufferDepthTex);
 	glDeleteTextures(2, bufferColourTex);
 
@@ -259,11 +252,7 @@ Renderer::~Renderer(void)
 	glDeleteFramebuffers(1, &bufferFBO);
 	glDeleteFramebuffers(1, &sobelFBO);
 
-	for(int i=0;i<2;i++)
-	{
-		delete lights[i];
-	}
-	delete[] lights;
+	delete light;
 
 	delete root;
 	delete island;
@@ -310,10 +299,8 @@ void Renderer::UpdateScene(float msec)
 	//Rotate the point light if toggled
 	if (sunRotation)
 	{
-		lights[0]->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(lights[0]->GetPosition())).GetPositionVector());
+		light->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(light->GetPosition())).GetPositionVector());
 	}
-	//Update spotlight position
-	lights[1]->SetPosition(camera->GetPosition());
 
 	//Update nodes
 	root->Update(msec);
@@ -323,12 +310,8 @@ void Renderer::RenderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	//TODO: try and get this to work, ask rich why it's not
-	//Draw shadowmaps
-	//for(int i=0;i<2;i++)
-	{
-		DrawShadowScene(lights[0], 0);
-	}
+	//Draw shadowmap
+	DrawShadowScene(light);
 	//Draw scene
 	DrawCombinedScene();
 	//Apply postprocessing
@@ -406,14 +389,13 @@ void Renderer::DrawNode(SceneNode* node, bool shadow)
 	{
 		if (shadow)
 		{
-			glEnable(GL_CULL_FACE);
-			glCullFace(GL_FRONT);
+			glDisable(GL_CULL_FACE);
 		}
 
 		SetCurrentShader(node->GetShader());
 		for(int i=0;i<2;i++)
 		{
-			SetShaderLight(*lights[i]);
+			SetShaderLight(*light);
 		}
 
 		node->BindTextures();
@@ -429,8 +411,7 @@ void Renderer::DrawNode(SceneNode* node, bool shadow)
 
 		if (shadow)
 		{
-			glCullFace(GL_BACK);
-			glDisable(GL_CULL_FACE);
+			glEnable(GL_CULL_FACE);
 		}
 
 		glUseProgram(0);
@@ -443,13 +424,13 @@ void Renderer::ClearNodeLists()
 	opaqueNodes.clear();
 }
 
-void Renderer::DrawShadowScene(const Light* light, int index)
+void Renderer::DrawShadowScene(const Light* light)
 {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[index], 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
 	glDrawBuffer(GL_NONE);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);

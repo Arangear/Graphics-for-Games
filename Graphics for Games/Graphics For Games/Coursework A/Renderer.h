@@ -12,7 +12,7 @@
 #include "TextMesh.h"
 #include <algorithm>
 
-#define SHADOWSIZE 2048
+#define SHADOWSIZE 4096
 
 class Renderer : public OGLRenderer
 {
@@ -38,7 +38,7 @@ protected:
 	OBJMesh* stone;
 	Island* island;
 	Camera* camera;
-	Light** lights;
+	Light* light;
 	Mesh* quad;
 	Mesh* sobelQuad;
 	GLuint cubeMap;
@@ -52,7 +52,7 @@ protected:
 	Shader* sobelShader;
 	Shader* sceneShader;
 
-	GLuint shadowTex[2];
+	GLuint shadowTex;
 	GLuint shadowFBO;
 
 	GLuint bufferFBO;
@@ -86,7 +86,7 @@ protected:
 	void DrawNodes(bool shadow = false);
 	void DrawNode(SceneNode* node, bool shadow = false);
 	void ClearNodeLists();
-	void DrawShadowScene(const Light* light, int index);
+	void DrawShadowScene(const Light* light);
 	void DrawCombinedScene();
 	void DrawSobel();
 	void PresentScene();

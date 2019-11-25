@@ -252,20 +252,10 @@ void OGLRenderer::SetTextureRepeating( GLuint target, bool repeating )	{
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void OGLRenderer::SetShaderLight(const Light &l) {
-	if (!l.IsSpotlight())
-	{
-		glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "lightPos"), 1, (float*)& l.GetPosition());
-		glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "lightColour"), 1, (float*)& l.GetColour());
-		glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "lightRadius"), l.GetRadius());
-	}
-	else
-	{
-		glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "spotlightPos"), 1, (float*)& l.GetPosition());
-		glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "spotlightColour"), 1, (float*)& l.GetColour());
-		glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "spotlightRadius"), l.GetRadius());
-		glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "spotlightDirection"), 1, (float*)& l.GetDirection());
-	}
+void OGLRenderer::SetShaderLight(const Light& l) {
+	glUniform3fv(glGetUniformLocation(currentShader->GetProgram(), "lightPos"), 1, (float*)&l.GetPosition());
+	glUniform4fv(glGetUniformLocation(currentShader->GetProgram(), "lightColour"), 1, (float*)&l.GetColour());
+	glUniform1f(glGetUniformLocation(currentShader->GetProgram(), "lightRadius"), l.GetRadius());
 }
 
 #ifdef OPENGL_DEBUGGING
