@@ -30,10 +30,12 @@ protected:
 	vector<SceneNode*> opaqueNodes;
 	vector<SceneNode*> transparentNodes;
 
+	Matrix4 cameraProjectionMatrix;
+
 	OBJMesh* stone;
 	Island* island;
 	Camera* camera;
-	Light* sun;
+	Light** lights;
 	Mesh* quad;
 	Mesh* sobelQuad;
 	GLuint cubeMap;
@@ -47,7 +49,7 @@ protected:
 	Shader* sobelShader;
 	Shader* sceneShader;
 
-	GLuint shadowTex;
+	GLuint shadowTex[2];
 	GLuint shadowFBO;
 
 	GLuint bufferFBO;
@@ -80,7 +82,7 @@ protected:
 	void DrawNodes(bool shadow = false);
 	void DrawNode(SceneNode* node, bool shadow = false);
 	void ClearNodeLists();
-	void DrawShadowScene();
+	void DrawShadowScene(const Light* light, int index);
 	void DrawCombinedScene();
 	void DrawSobel();
 	void PresentScene();

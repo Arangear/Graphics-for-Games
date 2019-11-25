@@ -5,7 +5,14 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
-	sun = new Light(Vector3(300.0f, 10000.0f, 0), Vector4(1, 1, 1, 1), 21000.0f);
+
+	lights = new Light*[2];
+	
+	lights[0] = new Light(Vector3(300.0f, 10000.0f, 0), Vector3(0,0,0), Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f), Vector4(1, 1, 1, 1), 21000.0f);
+	lights[1] = new Light(camera->GetPosition(), Vector3(0,-1,0), Matrix4::Perspective(1.0f, 1000.0f, 1.0f, 30.0f), Vector4(1, 1, 1, 1), 1000.0f, true);
+
+	cameraProjectionMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+	
 	quad = Mesh::GenerateQuad();
 	sobelQuad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
@@ -30,7 +37,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	{
 		return;
 	}
-
+	
 	stone->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"RockSmooth0076_4_L.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	stone->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"rockBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	island->SetSandTexture(SOIL_load_OGL_texture(TEXTUREDIR"sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
@@ -56,21 +63,21 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	}
 
 	//Shadow texture
-	glGenTextures(1, &shadowTex);
-	glBindTexture(GL_TEXTURE_2D, shadowTex);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-	glBindTexture(GL_TEXTURE_2D, 0);
-
+	for(int i=0;i<2;i++)
+	{
+		glGenTextures(1, &shadowTex[i]);
+		glBindTexture(GL_TEXTURE_2D, shadowTex[i]);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, SHADOWSIZE, SHADOWSIZE, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+	}
 	glGenFramebuffers(1, &shadowFBO);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex, 0);
-	glDrawBuffer(GL_NONE);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
+	//glDrawBuffer(GL_NONE);
 
 	//Scene depth texture
 	glGenTextures(1, &bufferDepthTex);
@@ -108,7 +115,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-
+	//Initialise scene graph
 	root = new SceneNode();
 	SceneNode* s = new SceneNode();
 	//Island
@@ -134,7 +141,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
-		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex));
+		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
+		s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
 
 		root->AddChild(s);
 	}
@@ -168,6 +176,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
 		s->AddTexture(Texture(GL_TEXTURE6, GL_TEXTURE_CUBE_MAP, cubeMap));
+		s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
+		s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
 
 		s->SetRotation(true);
 		s->SetRotationPointer(waterRotate);
@@ -202,6 +212,9 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 				s->AddUniform(new Uniform(uniform3fv, "cameraPos", (void*)&camera->GetPosition()));
 				s->AddUniform(new Uniform(uniform1i, "shadowTex", new int(7)));
 
+				s->AddTexture(Texture(GL_TEXTURE7, GL_TEXTURE_2D, shadowTex[0]));
+				s->AddTexture(Texture(GL_TEXTURE8, GL_TEXTURE_2D, shadowTex[1]));
+
 				root->AddChild(s);
 			}
 		}
@@ -214,7 +227,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	SetTextureRepeating(quad->GetTexture(), true);
 	SetTextureRepeating(stone->GetTexture(), true);
 
-	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = cameraProjectionMatrix;
 
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
@@ -229,7 +242,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 Renderer::~Renderer(void)
 {
-	glDeleteTextures(1, &shadowTex);
+	glDeleteTextures(2, shadowTex);
 	glDeleteTextures(1, &bufferDepthTex);
 	glDeleteTextures(2, bufferColourTex);
 
@@ -237,10 +250,15 @@ Renderer::~Renderer(void)
 	glDeleteFramebuffers(1, &bufferFBO);
 	glDeleteFramebuffers(1, &sobelFBO);
 
+	for(int i=0;i<2;i++)
+	{
+		delete lights[i];
+	}
+	delete[] lights;
+
 	delete root;
 	delete island;
 	delete camera;
-	delete sun;
 	delete quad;
 	delete stone;
 
@@ -279,8 +297,9 @@ void Renderer::UpdateScene(float msec)
 	}
 	if (sunRotation)
 	{
-		sun->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(sun->GetPosition())).GetPositionVector());
+		lights[0]->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(lights[0]->GetPosition())).GetPositionVector());
 	}
+	lights[1]->SetPosition(camera->GetPosition());
 
 	root->Update(msec);
 }
@@ -289,13 +308,18 @@ void Renderer::RenderScene()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	DrawShadowScene();
+	//TODO: try and get this to work, ask rich why it's not
+	//for(int i=0;i<2;i++)
+	{
+		DrawShadowScene(lights[0], 0);
+	}
 	DrawCombinedScene();
 	if (edgeDetection)
 	{
 		DrawSobel();
 		PresentScene();
 	}
+	DrawFPS();
 
 	SwapBuffers();
 }
@@ -366,7 +390,10 @@ void Renderer::DrawNode(SceneNode* node, bool shadow)
 		}
 
 		SetCurrentShader(node->GetShader());
-		SetShaderLight(*sun);
+		for(int i=0;i<2;i++)
+		{
+			SetShaderLight(*lights[i]);
+		}
 
 		node->BindTextures();
 		node->BuildUniforms();
@@ -394,19 +421,21 @@ void Renderer::ClearNodeLists()
 	opaqueNodes.clear();
 }
 
-void Renderer::DrawShadowScene()
+void Renderer::DrawShadowScene(const Light* light, int index)
 {
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_BLEND);
 
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[index], 0);
+	glDrawBuffer(GL_NONE);
 	glClear(GL_DEPTH_BUFFER_BIT);
 	glViewport(0, 0, SHADOWSIZE, SHADOWSIZE);
 	glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
 
-	currentCameraPosition = sun->GetPosition();
-	viewMatrix = Matrix4::BuildViewMatrix(sun->GetPosition(), Vector3(0, 0, 0));
-	projMatrix = Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f);
+	currentCameraPosition = light->GetPosition();
+	viewMatrix = Matrix4::BuildViewMatrix(light->GetPosition(), light->GetDirection());
+	projMatrix = light->GetProjectionMatrix();
 	shadowMatrix = biasMatrix * (projMatrix * viewMatrix);
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 	
@@ -422,7 +451,7 @@ void Renderer::DrawShadowScene()
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glViewport(0, 0, width, height);
 	
-	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = cameraProjectionMatrix;
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glEnable(GL_CULL_FACE);
@@ -433,7 +462,7 @@ void Renderer::DrawCombinedScene()
 {
 	currentCameraPosition = camera->GetPosition();
 	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = cameraProjectionMatrix;
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
 	ClearNodeLists();
@@ -450,7 +479,6 @@ void Renderer::DrawCombinedScene()
 
 	DrawSkybox();
 	DrawNodes();
-	DrawFPS();
 
 	if (edgeDetection)
 	{
@@ -464,7 +492,7 @@ void Renderer::DrawSobel()
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();
 	glBindFramebuffer(GL_FRAMEBUFFER, sobelFBO);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
+	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	
 	SetCurrentShader(sobelShader);
@@ -473,21 +501,29 @@ void Renderer::DrawSobel()
 	UpdateShaderMatrices();
 	
 	glDisable(GL_DEPTH_TEST);
-	
+
+	//Blur
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "isVertical"), 0);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "stage"), 0);
 	
 	sobelQuad->SetTexture(bufferColourTex[0]);
 	sobelQuad->Draw();
 
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "isVertical"), 1);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "stage"), 1);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[0], 0);
 	
 	sobelQuad->SetTexture(bufferColourTex[1]);
 	sobelQuad->Draw();
-
+	//Sobel
+	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "stage"), 2);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
+	
+	sobelQuad->SetTexture(bufferColourTex[0]);
+	sobelQuad->Draw();
+	
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	glUseProgram(0);
 	
@@ -502,11 +538,10 @@ void Renderer::PresentScene()
 	projMatrix = Matrix4::Orthographic(-1, 1, 1, -1, -1, 1);
 	viewMatrix.ToIdentity();
 	UpdateShaderMatrices();
-	sobelQuad->SetTexture(bufferColourTex[0]);
+	sobelQuad->SetTexture(bufferColourTex[1]);
 	sobelQuad->Draw();
 	glUseProgram(0);
 }
-
 
 void Renderer::DrawFPS()
 {
@@ -528,7 +563,7 @@ void Renderer::DrawFPS()
 	UpdateShaderMatrices();
 	mesh->Draw();
 
-	projMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
+	projMatrix = cameraProjectionMatrix;
 	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
 
 	delete mesh;
