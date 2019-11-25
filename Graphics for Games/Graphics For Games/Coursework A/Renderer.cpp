@@ -1,18 +1,24 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
+
 #include "Renderer.h"
 #include <string>
 
 Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 {
+	//Initialise scene objects
 	island = new Island();
 	camera = new Camera(-40, 270, Vector3(-2100, 3300, 2000));
 
 	lights = new Light*[2];
-	
 	lights[0] = new Light(Vector3(300.0f, 10000.0f, 0), Vector3(0,0,0), Matrix4::Perspective(5900.0f, 14100.0f, 1, 70.0f), Vector4(1, 1, 1, 1), 21000.0f);
 	lights[1] = new Light(camera->GetPosition(), Vector3(0,-1,0), Matrix4::Perspective(1.0f, 1000.0f, 1.0f, 30.0f), Vector4(1, 1, 1, 1), 1000.0f, true);
 
+	//Set up projection matrix
 	cameraProjectionMatrix = Matrix4::Perspective(cameraNear, cameraFar, (float)width / (float)height, 45.0f);
 	
+	//Load meshes and shaders
 	quad = Mesh::GenerateQuad();
 	sobelQuad = Mesh::GenerateQuad();
 	stone = new OBJMesh();
@@ -25,8 +31,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	sobelShader = new Shader(SHADERDIR"SobelVertex.glsl", SHADERDIR"SobelFragment.glsl");
 	sceneShader = new Shader(SHADERDIR"SceneVertex.glsl", SHADERDIR"SceneFragment.glsl");
 
+	//Load font
 	font = new Font(SOIL_load_OGL_texture(TEXTUREDIR"tahoma.tga", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_COMPRESS_TO_DXT), 16, 16);
 
+	//Make sure shaders are alright
 	if (!lightShader->LinkProgram() ||
 		!reflectShader->LinkProgram() ||
 		!skyboxShader->LinkProgram() ||
@@ -38,6 +46,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 	
+	//Set textures for all objects
 	stone->SetTexture(SOIL_load_OGL_texture(TEXTUREDIR"RockSmooth0076_4_L.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	stone->SetBumpMap(SOIL_load_OGL_texture(TEXTUREDIR"rockBump.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
 	island->SetSandTexture(SOIL_load_OGL_texture(TEXTUREDIR"sand.jpg", SOIL_LOAD_AUTO, SOIL_CREATE_NEW_ID, SOIL_FLAG_MIPMAPS));
@@ -50,6 +59,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 									TEXTUREDIR"bluecloud_rt.jpg", TEXTUREDIR"bluecloud_lf.jpg",
 									SOIL_LOAD_RGB, SOIL_CREATE_NEW_ID, 0);
 
+	//Make sure it actually worked
 	if (!stone->GetTexture() ||
 		!stone->GetBumpMap() ||
 		!island->GetSandTexture() ||
@@ -62,7 +72,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 		return;
 	}
 
-	//Shadow texture
+	//Prepare shadow textures and FBO
 	for(int i=0;i<2;i++)
 	{
 		glGenTextures(1, &shadowTex[i]);
@@ -76,10 +86,10 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glGenFramebuffers(1, &shadowFBO);
 	
 	glBindFramebuffer(GL_FRAMEBUFFER, shadowFBO);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
-	//glDrawBuffer(GL_NONE);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, shadowTex[0], 0);
+	glDrawBuffer(GL_NONE);
 
-	//Scene depth texture
+	//Prepare scene depth texture
 	glGenTextures(1, &bufferDepthTex);
 	glBindTexture(GL_TEXTURE_2D, bufferDepthTex);
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
@@ -88,7 +98,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH24_STENCIL8, width, height, 0, GL_DEPTH_STENCIL, GL_UNSIGNED_INT_24_8, NULL);
 
-	//Colour textures
+	//Prepare colour textures
 	for (int i = 0; i < 2; i++)
 	{
 		glGenTextures(1, &bufferColourTex[i]);
@@ -108,6 +118,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_TEXTURE_2D, bufferDepthTex, 0);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[0], 0);
 	
+	//Make sure it worked
 	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || !bufferDepthTex || !bufferColourTex[0])
 	{
 		return;
@@ -118,7 +129,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 	//Initialise scene graph
 	root = new SceneNode();
 	SceneNode* s = new SceneNode();
-	//Island
+	//Initisalise Island node
 	{
 		modelMatrix.ToIdentity();
 		textureMatrix.ToIdentity();
@@ -146,7 +157,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 		root->AddChild(s);
 	}
-	//Water
+	//Initialise water node
 	{
 		float heightX = WIDTH * HEIGHTMAP_X / 2.0f;
 		float heightY = 500.0f;
@@ -184,7 +195,7 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 		root->AddChild(s);
 	}
-	//Stones
+	//Initialise stone nodes
 	{
 		for (int i = 0; i < 5; i++)
 		{
@@ -194,10 +205,8 @@ Renderer::Renderer(Window& parent) : OGLRenderer(parent)
 
 				textureMatrix.ToIdentity();
 				modelMatrix = Matrix4::Translation(Vector3((i - 2) * 300, 2500, (j - 2) * 300)) * Matrix4::Scale(Vector3(100, 100, 100));
-				//modelMatrix = Matrix4::Translation(Vector3(0, 1250, 0)) * Matrix4::Scale(Vector3(100, 100, 100));
 				s->SetColour(Vector4(1.0f, 1.0f, 1.0f, 1.0f));
 				s->SetTransform(Matrix4::Translation(Vector3((i - 2) * 300, 2500, (j - 2) * 300)));
-				//s->SetTransform(Matrix4::Translation(Vector3(0, 1500, 0)));
 				s->SetModelScale(Vector3(100, 100, 100));
 				s->SetBoundingRadius(200.0f);
 				s->SetMesh(stone);
@@ -277,11 +286,13 @@ Renderer::~Renderer(void)
 
 void Renderer::UpdateScene(float msec)
 {
+	//Update camera, matrices and frustum
 	camera->UpdateCamera(msec);
 	viewMatrix = camera->BuildViewMatrix();
 	*waterRotate += msec / 1000.0f;
 	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
+	//Every second(-ish) update FPS display
 	if (msCount >= 1000)
 	{
 		msCount = 0;
@@ -291,16 +302,20 @@ void Renderer::UpdateScene(float msec)
 	{
 		msCount += msec;
 	}
+	//Simulate height increase
 	if (currentHeightMod < 5000.0f)
 	{
 		currentHeightMod += growthSpeed * msec / 1000.0f;
 	}
+	//Rotate the point light if toggled
 	if (sunRotation)
 	{
 		lights[0]->SetPosition((Matrix4::Rotation(sunSpeed * msec / 1000.0f, Vector3(1, 0, 0)) * Matrix4::Translation(lights[0]->GetPosition())).GetPositionVector());
 	}
+	//Update spotlight position
 	lights[1]->SetPosition(camera->GetPosition());
 
+	//Update nodes
 	root->Update(msec);
 }
 
@@ -309,11 +324,14 @@ void Renderer::RenderScene()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//TODO: try and get this to work, ask rich why it's not
+	//Draw shadowmaps
 	//for(int i=0;i<2;i++)
 	{
 		DrawShadowScene(lights[0], 0);
 	}
+	//Draw scene
 	DrawCombinedScene();
+	//Apply postprocessing
 	if (edgeDetection)
 	{
 		DrawSobel();
@@ -401,6 +419,7 @@ void Renderer::DrawNode(SceneNode* node, bool shadow)
 		node->BindTextures();
 		node->BuildUniforms();
 
+		//Update matrices
 		modelMatrix = node->GetModelMatrix();
 		textureMatrix = node->GetTextureMatrix();
 
@@ -495,7 +514,6 @@ void Renderer::DrawSobel()
 	modelMatrix.ToIdentity();
 	textureMatrix.ToIdentity();
 	glBindFramebuffer(GL_FRAMEBUFFER, sobelFBO);
-	//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
 	glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT);
 	
 	SetCurrentShader(sobelShader);
@@ -505,7 +523,7 @@ void Renderer::DrawSobel()
 	
 	glDisable(GL_DEPTH_TEST);
 
-	//Blur
+	//Apply slight blur
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);
 
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);
@@ -519,7 +537,7 @@ void Renderer::DrawSobel()
 	
 	sobelQuad->SetTexture(bufferColourTex[1]);
 	sobelQuad->Draw();
-	//Sobel
+	//Apply Sobel filter
 	glUniform2f(glGetUniformLocation(currentShader->GetProgram(), "pixelSize"), 1.0f / width, 1.0f / height);
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "stage"), 2);
 	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, bufferColourTex[1], 0);

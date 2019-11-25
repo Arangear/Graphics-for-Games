@@ -1,7 +1,11 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #include "Island.h"
 
 Island::Island()
 {
+	//Initialise the grid
 	numVertices = WIDTH * HEIGHT;
 	numIndices = (WIDTH - 1) * (HEIGHT - 1) * 6;
 	vertices = new Vector3[numVertices];

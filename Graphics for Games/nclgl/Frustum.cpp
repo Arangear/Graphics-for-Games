@@ -15,16 +15,16 @@ bool Frustum::InsideFrustum(SceneNode& n)
 	Vector3 zaxis = Vector3(mat.values[2], mat.values[6], mat.values[10]);
 	Vector3 waxis = Vector3(mat.values[3], mat.values[7], mat.values[11]);
 	
-	//RIGHT
+	//Right
 	planes[0] = Plane(waxis - xaxis, (mat.values[15] - mat.values[12]), true);
-	//LEFT
+	//Left
 	planes[1] = Plane(waxis + xaxis, (mat.values[15] + mat.values[12]), true);
-	//BOTTOM
+	//Bottom
 	planes[2] = Plane(waxis + yaxis, (mat.values[15] + mat.values[13]), true);
-	//TOP
+	//Top
 	planes[3] = Plane(waxis - yaxis, (mat.values[15] - mat.values[13]), true);
-	//FAR
+	//Far
 	planes[4] = Plane(waxis - zaxis, (mat.values[15] - mat.values[14]), true);
-	//NEAR
+	//Near
 	planes[5] = Plane(waxis + zaxis, (mat.values[15] + mat.values[14]), true);
 }

@@ -1,3 +1,6 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #version 150 core
 
 uniform mat4 modelMatrix;
@@ -22,7 +25,6 @@ out Vertex
 	vec3 binormal;
 	vec3 worldPos;
 	vec4 shadowProj[9];
-	//vec4 shadowProj;
 } OUT;
 
 vec3 calculateTangent(mat3 normalMatrix, vec2 coord);
@@ -64,8 +66,6 @@ void main(void)
 	OUT.normal = normalize(normalMatrix * normalize(cross(OUT.tangent, OUT.binormal)));
 
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
-
-	//OUT.shadowProj = shadowMatrix * modelMatrix * vec4(vec3(position.x, h, position.z) + (OUT.normal * 10), 1);
 
 	gl_Position = mvp * vec4(position.x, h, position.z, 1.0);
 }

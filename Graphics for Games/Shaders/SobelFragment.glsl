@@ -1,5 +1,7 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #version 150 core
-#define PI 3.1415926535897932384626433832795
 
 uniform sampler2D diffuseTex;
 uniform vec2 pixelSize;

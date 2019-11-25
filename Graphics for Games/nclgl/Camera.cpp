@@ -72,7 +72,9 @@ Matrix4 Camera::BuildViewMatrix()	{
 
 void Camera::generatePaths()
 {
-	//Implementation requires both paths to have exact same number of nodes and exact same number of waypoints and neighboring waypoints to represent different positions
+	//Implementation requires both paths to have exact same number of nodes 
+	//and exact same number of waypoints and neighboring waypoints to represent 
+	//different positions
 	cameraPath = new Spline(3200, false);
 	rotationPath = new Spline(3200, true);
 

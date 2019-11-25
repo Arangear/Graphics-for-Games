@@ -1,3 +1,6 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #pragma once
 
 #include "../../nclgl/OGLRenderer.h"
@@ -57,6 +60,7 @@ protected:
 	GLuint bufferColourTex[2];
 	GLuint bufferDepthTex;
 
+	//Allows correct frustum calculation
 	Vector3 currentCameraPosition;
 
 	Font* font;

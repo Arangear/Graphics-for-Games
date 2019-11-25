@@ -1,3 +1,6 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #include "Plane.h"
 
 Plane::Plane(const Vector3& normal, float distance, bool normalise)

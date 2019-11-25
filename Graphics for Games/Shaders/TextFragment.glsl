@@ -7,9 +7,9 @@ in Vertex
 	vec2 texCoord;
 } IN;
 
-out vec4 gl_FragColor;
+out vec4 fragColor;
 
 void main(void)
 {
-	gl_FragColor = texture(diffuseTex, IN.texCoord);
+	fragColor = texture(diffuseTex, IN.texCoord);
 }

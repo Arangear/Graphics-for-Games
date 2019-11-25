@@ -1,3 +1,6 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #pragma once
 #include "Matrix4.h"
 #include "Vector3.h"

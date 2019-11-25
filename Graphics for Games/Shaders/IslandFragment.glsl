@@ -1,3 +1,6 @@
+//Author:			Daniel Cieslowski
+//Last Modified:	25/11/2019
+//Student No:		190562751
 #version 150 core
 
 uniform sampler2D sandTex;
@@ -19,7 +22,6 @@ in Vertex
 	vec3 binormal;
 	vec3 worldPos;
 	vec4 shadowProj[9];
-	//vec4 shadowProj;
 } IN;
 
 out vec4 fragColour;
@@ -59,12 +61,6 @@ void main(void)
 	{
 		shadow = tmp / count;
 	}
-	/*
-	if (IN.shadowProj.w > 0.0)
-	{
-		shadow = textureProj(shadowTex, IN.shadowProj);
-	}
-	*/
 	lambert *= shadow;
 
 	vec3 colour = diffuse.rgb * lightColour.rgb;
