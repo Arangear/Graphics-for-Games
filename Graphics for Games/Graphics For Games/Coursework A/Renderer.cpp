@@ -373,9 +373,12 @@ void Renderer::DrawNodes(bool shadow)
 		DrawNode((*i), shadow);
 	}
 
-	for (vector<SceneNode*>::const_reverse_iterator i = transparentNodes.rbegin(); i != transparentNodes.rend(); ++i)
+	if (!shadow)
 	{
-		DrawNode((*i), shadow);
+		for (vector<SceneNode*>::const_reverse_iterator i = transparentNodes.rbegin(); i != transparentNodes.rend(); ++i)
+		{
+			DrawNode((*i), false);
+		}
 	}
 }
 
@@ -445,7 +448,7 @@ void Renderer::DrawShadowScene(const Light* light, int index)
 	BuildNodeLists(root);
 	SortNodeLists();
 
-	DrawNodes();
+	DrawNodes(true);
 
 	glUseProgram(0);
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);

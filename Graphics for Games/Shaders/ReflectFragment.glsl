@@ -20,7 +20,7 @@ out vec4 fragColour;
 
 void main(void)
 {
-	vec4 diffuse = texture(diffuseTex, IN.texCoord) * IN.colour;
+	vec4 diffuse = texture(diffuseTex, IN.texCoord) * vec4(IN.colour.rgb, 0.6);
 	vec3 incident = normalize(IN.worldPos - cameraPos);
 
 	float dist = length(lightPos - IN.worldPos);
