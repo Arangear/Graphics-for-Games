@@ -41,6 +41,10 @@ int main()
 		{
 			renderer.ToggleEdgeDetection();
 		}
+		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
+		{
+			renderer.ToggleShadowMap();
+		}
 	}
 
 	return 0;

@@ -26,6 +26,7 @@ public:
 	void ToggleCamera() { camera->ToggleAutomated(); }
 	void ToggleSunRotation() { sunRotation = !sunRotation; }
 	void ToggleEdgeDetection() { edgeDetection = !edgeDetection; }
+	void ToggleShadowMap() { shadowMapOn = !shadowMapOn; }
 
 protected:
 	Frustum frameFrustum;
@@ -77,6 +78,7 @@ protected:
 	bool sunRotation = false;
 
 	bool edgeDetection = false;
+	bool shadowMapOn = false;
 
 	void DrawSkybox();
 	void DrawFPS();
@@ -89,5 +91,6 @@ protected:
 	void DrawShadowScene(const Light* light);
 	void DrawCombinedScene();
 	void DrawSobel();
+	void DrawShadowMap();
 	void PresentScene();
 };

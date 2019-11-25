@@ -321,6 +321,10 @@ void Renderer::RenderScene()
 		PresentScene();
 	}
 	DrawFPS();
+	if (shadowMapOn)
+	{
+		DrawShadowMap();
+	}
 
 	SwapBuffers();
 }
@@ -530,6 +534,37 @@ void Renderer::DrawSobel()
 	glUseProgram(0);
 	
 	glEnable(GL_DEPTH_TEST);
+}
+
+void Renderer::DrawShadowMap()
+{
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+
+	SetCurrentShader(textShader);
+
+	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 7);
+
+	Mesh* mesh = Mesh::GenerateQuad();
+	float size = 200;
+
+	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0)) * Matrix4::Scale(Vector3(size, size, 1));
+	viewMatrix.ToIdentity();
+	projMatrix = Matrix4::Orthographic(-1.0f, 1.0f, (float)width, 0.0f, (float)height, 0.0f);
+	textureMatrix.ToIdentity();
+
+	UpdateShaderMatrices();
+	mesh->Draw();
+
+	projMatrix = cameraProjectionMatrix;
+	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
+
+	delete mesh;
+
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
+
+	glUseProgram(0);
 }
 
 void Renderer::PresentScene()
