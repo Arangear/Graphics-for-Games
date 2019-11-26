@@ -1,5 +1,5 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #version 150 core
 
@@ -7,7 +7,7 @@ uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 textureMatrix;
-uniform mat4 shadowMatrix;
+uniform mat4 shadowMatrix[2];
 
 uniform float heightMod;
 uniform sampler2D heightTex;
@@ -24,7 +24,8 @@ out Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj[9];
+	vec4 shadowProj[18];
+	float clipSpaceZ[9];
 } OUT;
 
 vec3 calculateTangent(mat3 normalMatrix, vec2 coord);
@@ -56,7 +57,11 @@ void main(void)
 
 			float height = texture(heightTex, location).r * heightMod;
 
-			OUT.shadowProj[(i + 1) * 3 + j + 1] = shadowMatrix * modelMatrix * vec4(vec3(position.x + i * xSpacing, height, position.z + j * zSpacing) + (normal * 10), 1);
+			int id = (i + 1) * 3 + j + 1;
+
+			OUT.shadowProj[2 * id] = shadowMatrix[0] * modelMatrix * vec4(vec3(position.x + i * xSpacing, height, position.z + j * zSpacing) + (normal * 10), 1);
+			OUT.shadowProj[2 * id + 1] = shadowMatrix[1] * modelMatrix * vec4(vec3(position.x + i * xSpacing, height, position.z + j * zSpacing) + (normal * 10), 1);
+			OUT.clipSpaceZ[id] = ((projMatrix * viewMatrix * modelMatrix) * vec4(vec3(position.x + i * xSpacing, height, position.z + j * zSpacing), 1.0)).z;
 		}
 	}
 	

@@ -1,12 +1,13 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #version 150 core
 
 uniform sampler2D sandTex;
 uniform sampler2D rockTex;
 uniform sampler2D dirtTex;
-uniform sampler2DShadow shadowTex;
+uniform sampler2DShadow shadowTex[2];
+uniform float cascadeEnd[2];
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -21,7 +22,8 @@ in Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj[9];
+	vec4 shadowProj[18];
+	float clipSpaceZ[9];
 } IN;
 
 out vec4 fragColour;
@@ -51,10 +53,17 @@ void main(void)
 	float tmp = 0.0;
 	for (int i = 0; i < 9; i++)
 	{
-		if (IN.shadowProj[i].w > 0.0)
+		for (int j = 0; j < 2; j++)
 		{
-			tmp += textureProj(shadowTex, IN.shadowProj[i]);
-			count += 1.0;
+			if (IN.clipSpaceZ[i] <= cascadeEnd[j])
+			{
+				if (IN.shadowProj[2 * i + j].w > 0.0)
+				{
+					tmp += textureProj(shadowTex[j], IN.shadowProj[2 * i + j]);
+					count += 1.0;
+				}
+				break;
+			}
 		}
 	}
 	if (count != 0.0)

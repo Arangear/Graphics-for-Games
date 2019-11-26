@@ -1,5 +1,5 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #pragma once
 
@@ -17,13 +17,17 @@ public:
 		this->lookAt = Vector3(0, 0, 0);
 	}
 
-	Light(Vector3 position, Vector3 lookAt, Matrix4 projectionMatrix, Vector4 colour, float radius)
+	Light(Vector3 position, Vector3 lookAt, float nearZ, float farZ, float fov, float ratio, Vector4 colour, float radius)
 	{
 		this->position = position;
 		this->lookAt = lookAt;
-		this->projMatrix = projectionMatrix;
 		this->colour = colour;
 		this->radius = radius;
+		this->nearZ = nearZ;
+		this->farZ = farZ;
+		this->fov = fov;
+		this->ratio = ratio;
+		this->projMatrix = Matrix4::Perspective(nearZ, farZ, ratio, fov);
 	}
 	
 	~Light(void) {};
@@ -43,10 +47,19 @@ public:
 	Vector3 GetDirection() const { return lookAt; }
 	void SetDirection(Vector3 direction) { lookAt = direction; }
 
+	float GetNear() const { return nearZ; }
+	float GetFar() const { return farZ; }
+	float GetFOV() const { return fov; }
+	float GetAspect() const { return ratio; }
+
 protected:
 	Matrix4 projMatrix;
 	Vector3 position;
 	Vector3 lookAt;
 	Vector4 colour;
 	float radius;
+	float nearZ;
+	float farZ;
+	float fov;
+	float ratio;
 };

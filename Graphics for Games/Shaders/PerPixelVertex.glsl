@@ -1,12 +1,12 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #version 150 core
 uniform mat4 modelMatrix;
 uniform mat4 viewMatrix;
 uniform mat4 projMatrix;
 uniform mat4 textureMatrix;
-uniform mat4 shadowMatrix;
+uniform mat4 shadowMatrix[2];
 
 in vec3 position;
 in vec4 colour;
@@ -22,7 +22,8 @@ out Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj;
+	vec4 shadowProj[2];
+	float clipSpaceZ;
 } OUT;
 
 void main(void)
@@ -37,7 +38,11 @@ void main(void)
 	OUT.binormal = normalize(normalMatrix * normalize(cross(normal, tangent)));
 	
 	OUT.worldPos = (modelMatrix * vec4(position, 1)).xyz;
-	OUT.shadowProj = (shadowMatrix * modelMatrix * vec4(position + (normal * 1.5), 1));
+	for (int i = 0; i < 2; i++)
+	{
+		OUT.shadowProj[i] = (shadowMatrix[i] * modelMatrix * vec4(position + (normal * 1.5), 1));
+	}
 
 	gl_Position = (projMatrix * viewMatrix * modelMatrix ) * vec4(position, 1.0);
+	OUT.clipSpaceZ = gl_Position.z;
 }

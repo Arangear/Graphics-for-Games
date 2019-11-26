@@ -1,11 +1,12 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #version 150 core
 
 uniform sampler2D diffuseTex;
 uniform sampler2D bumpTex;
-uniform sampler2DShadow shadowTex;
+uniform sampler2DShadow shadowTex[2];
+uniform float cascadeEnd[2];
 
 uniform vec3 cameraPos;
 uniform vec4 lightColour;
@@ -20,7 +21,8 @@ in Vertex
 	vec3 tangent;
 	vec3 binormal;
 	vec3 worldPos;
-	vec4 shadowProj;
+	vec4 shadowProj[2];
+	float clipSpaceZ;
 } IN;
 
 out vec4 fragColour;
@@ -46,9 +48,16 @@ void main(void)
 	
 	float shadow = 1.0;
 	
-	if (IN.shadowProj.w > 0.0) 
-	{ 
-		shadow = textureProj(shadowTex, IN.shadowProj);
+	for (int i = 0; i < 2; i++)
+	{
+		if (IN.clipSpaceZ <= cascadeEnd[i])
+		{
+			if (IN.shadowProj[i].w > 0.0)
+			{
+				shadow = textureProj(shadowTex[i], IN.shadowProj[i]);
+			}
+			break;
+		}
 	}
 
 	lambert *= shadow;

@@ -1,5 +1,5 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #pragma once
 
@@ -53,8 +53,8 @@ protected:
 	Shader* sobelShader;
 	Shader* sceneShader;
 
-	GLuint shadowTex;
-	GLuint shadowFBO;
+	GLuint shadowTex[2];
+	GLuint shadowFBO[2];
 
 	GLuint bufferFBO;
 	GLuint sobelFBO;
@@ -88,7 +88,7 @@ protected:
 	void DrawNodes(bool shadow = false);
 	void DrawNode(SceneNode* node, bool shadow = false);
 	void ClearNodeLists();
-	void DrawShadowScene(const Light* light);
+	void DrawShadowScene(const Light* light, const int index);
 	void DrawCombinedScene();
 	void DrawSobel();
 	void DrawShadowMap();
