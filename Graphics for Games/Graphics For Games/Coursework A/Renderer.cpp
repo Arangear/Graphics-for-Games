@@ -321,10 +321,6 @@ void Renderer::RenderScene()
 		PresentScene();
 	}
 	DrawFPS();
-	if (shadowMapOn)
-	{
-		DrawShadowMap();
-	}
 
 	SwapBuffers();
 }
@@ -467,25 +463,34 @@ void Renderer::DrawShadowScene(const Light* light)
 
 void Renderer::DrawCombinedScene()
 {
-	currentCameraPosition = camera->GetPosition();
-	viewMatrix = camera->BuildViewMatrix();
-	projMatrix = cameraProjectionMatrix;
-	frameFrustum.FromMatrix(projMatrix * viewMatrix);
-
-	ClearNodeLists();
-	BuildNodeLists(root);
-	SortNodeLists();
-
-	UpdateShaderMatrices();
-
 	if (edgeDetection)
 	{
 		glBindFramebuffer(GL_FRAMEBUFFER, bufferFBO);
 		glClear(GL_DEPTH_BUFFER_BIT | GL_COLOR_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 	}
 
-	DrawSkybox();
-	DrawNodes();
+	if (splitOn)
+	{
+		for (int i = 0; i < 2; i++)
+		{
+			for (int j = 0; j < 2; j++)
+			{
+				glViewport(i * width / 2, j * height / 2, width / 2, height / 2);
+
+				DrawSkyboxAndNodes();
+
+				if (camera->IsAutomated())
+				{
+					camera->MoveCamera(camera->GetPathNodeCount() / 4.0f);
+				}
+			}
+		}
+		glViewport(0, 0, width, height);
+	}
+	else
+	{
+		DrawSkyboxAndNodes();
+	}
 
 	if (edgeDetection)
 	{
@@ -536,35 +541,21 @@ void Renderer::DrawSobel()
 	glEnable(GL_DEPTH_TEST);
 }
 
-void Renderer::DrawShadowMap()
+void Renderer::DrawSkyboxAndNodes()
 {
-	glDisable(GL_BLEND);
-	glDisable(GL_DEPTH_TEST);
+	currentCameraPosition = camera->GetPosition();
+	viewMatrix = camera->BuildViewMatrix();
+	projMatrix = cameraProjectionMatrix;
+	frameFrustum.FromMatrix(projMatrix * viewMatrix);
 
-	SetCurrentShader(textShader);
-
-	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 7);
-
-	Mesh* mesh = Mesh::GenerateQuad();
-	float size = 200;
-
-	modelMatrix = Matrix4::Translation(Vector3(0, 0, 0)) * Matrix4::Scale(Vector3(size, size, 1));
-	viewMatrix.ToIdentity();
-	projMatrix = Matrix4::Orthographic(-1.0f, 1.0f, (float)width, 0.0f, (float)height, 0.0f);
-	textureMatrix.ToIdentity();
+	ClearNodeLists();
+	BuildNodeLists(root);
+	SortNodeLists();
 
 	UpdateShaderMatrices();
-	mesh->Draw();
 
-	projMatrix = cameraProjectionMatrix;
-	textureMatrix = Matrix4::Scale(Vector3(10.0f, 10.0f, 10.0f)) * Matrix4::Rotation(*waterRotate, Vector3(0.0f, 0.0f, 1.0f));
-
-	delete mesh;
-
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-
-	glUseProgram(0);
+	DrawSkybox();
+	DrawNodes();
 }
 
 void Renderer::PresentScene()
@@ -590,7 +581,7 @@ void Renderer::DrawFPS()
 	glUniform1i(glGetUniformLocation(currentShader->GetProgram(), "diffuseTex"), 0);
 
 	float size = 16.0f;
-	TextMesh* mesh = new TextMesh(fps + "fps", *font);
+	TextMesh* mesh = new TextMesh(fps + "fps" + " " + std::to_string(GetObjectCount()) + "obj", *font);
 
 	modelMatrix = Matrix4::Translation(Vector3(0, height , 0)) * Matrix4::Scale(Vector3(size, size, 1));
 	viewMatrix.ToIdentity();

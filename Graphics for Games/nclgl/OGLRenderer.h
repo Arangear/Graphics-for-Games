@@ -41,7 +41,7 @@ using std::vector;
 #pragma comment(lib, "glew32.lib")
 #pragma comment(lib, "SOIL.lib")
 
-#define OPENGL_DEBUGGING
+//#define OPENGL_DEBUGGING
 
 static const float biasValues[16] = {
 	0.5, 0.0, 0.0, 0.0,

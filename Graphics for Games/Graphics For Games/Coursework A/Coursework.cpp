@@ -1,5 +1,5 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #pragma comment(lib, "nclgl.lib")
 
@@ -8,7 +8,7 @@
 
 int main()
 {
-	Window window("Coursework", 800, 600, false);
+	Window window("Coursework", 1920, 1080, true);
 	if(!window.HasInitialised())
 	{
 		return -1;
@@ -43,7 +43,7 @@ int main()
 		}
 		if (Window::GetKeyboard()->KeyTriggered(KEYBOARD_2))
 		{
-			renderer.ToggleShadowMap();
+			renderer.ToggleSplitScreen();
 		}
 	}
 

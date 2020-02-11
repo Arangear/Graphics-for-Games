@@ -1,5 +1,5 @@
 //Author:			Daniel Cieslowski
-//Last Modified:	25/11/2019
+//Last Modified:	26/11/2019
 //Student No:		190562751
 #pragma once
 #include "Vector3.h"
@@ -15,6 +15,8 @@ public:
 	void GenerateNodes();
 
 	Vector3 Next(int i = 1);
+
+	float GetNodeCount() { return nodeCount; }
 
 private:
 	std::vector<Vector3> waypoints;

@@ -58,6 +58,12 @@ public:
 
 	void ToggleAutomated() { automated = !automated; }
 
+	float GetPathNodeCount() { return cameraPath->GetNodeCount(); }
+
+	void MoveCamera(float count) { position = cameraPath->Next(count); Vector3 direction = rotationPath->Next(count); pitch = direction.x; yaw = direction.y; }
+
+	bool IsAutomated() { return automated; }
+
 protected:
 	float	yaw;
 	float	pitch;

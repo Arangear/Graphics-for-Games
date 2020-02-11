@@ -27,6 +27,7 @@ public:
 	void ToggleSunRotation() { sunRotation = !sunRotation; }
 	void ToggleEdgeDetection() { edgeDetection = !edgeDetection; }
 	void ToggleShadowMap() { shadowMapOn = !shadowMapOn; }
+	void ToggleSplitScreen() { splitOn = !splitOn; }
 
 protected:
 	Frustum frameFrustum;
@@ -79,6 +80,7 @@ protected:
 
 	bool edgeDetection = false;
 	bool shadowMapOn = false;
+	bool splitOn = false;
 
 	void DrawSkybox();
 	void DrawFPS();
@@ -91,6 +93,8 @@ protected:
 	void DrawShadowScene(const Light* light);
 	void DrawCombinedScene();
 	void DrawSobel();
-	void DrawShadowMap();
+	void DrawSkyboxAndNodes();
 	void PresentScene();
+
+	int GetObjectCount() { return opaqueNodes.size() + transparentNodes.size(); }
 };
